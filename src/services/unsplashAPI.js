@@ -36,14 +36,17 @@ class UnsplashService {
     this.apiUrl = UNSPLASH_API_URL;
   }
 
-  async getImageForCategory(category) {
+  async getImageForStory(story, retryCount = 0) {
     try {
       if (!this.accessKey) {
         console.warn('Unsplash API key not found. Using fallback images.');
-        return this.getFallbackImage(category);
+        return this.getFallbackImage(story.category);
       }
 
-      const keywords = CATEGORY_KEYWORDS[category] || 'startup business failure';
+      // Create specific search terms based on the story content
+      const keywords = this.generateKeywordsFromStory(story);
+      console.log(`Searching Unsplash for: "${keywords}" (${story.title})`);
+      
       const url = `${this.apiUrl}/search/photos`;
       
       const params = new URLSearchParams({
@@ -57,7 +60,80 @@ class UnsplashService {
       const response = await fetch(`${url}?${params}`);
       
       if (!response.ok) {
+        if (response.status === 403) {
+          console.warn('Unsplash API access denied (403). Using fallback image.');
+          return this.getFallbackImage(story.category);
+        } else if (response.status === 401) {
+          console.warn('Unsplash API unauthorized (401). Check API key. Using fallback image.');
+          return this.getFallbackImage(story.category);
+        } else if (response.status === 429) {
+          console.warn('Unsplash API rate limit exceeded (429). Using fallback image.');
+          return this.getFallbackImage(story.category);
+        }
+        // For other errors, try fallback if this is first attempt
+        if (retryCount === 0) {
+          console.warn(`Unsplash API error ${response.status}, trying with category keywords...`);
+          return this.getImageForCategory(story.category);
+        }
         throw new Error(`Unsplash API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.results && data.results.length > 0) {
+        const photo = data.results[0];
+        console.log(`Found image for ${story.title}: ${photo.urls.small}`);
+        return {
+          url: photo.urls.regular,
+          smallUrl: photo.urls.small,
+          thumbUrl: photo.urls.thumb,
+          alt: photo.alt_description || story.title,
+          photographer: photo.user.name,
+          photographerUrl: photo.user.links.html,
+          downloadUrl: photo.links.download_location
+        };
+      } else {
+        console.warn(`No images found for story: ${story.title}`);
+        // Try with category-based search as fallback
+        if (retryCount === 0) {
+          return this.getImageForCategory(story.category);
+        }
+        return this.getFallbackImage(story.category);
+      }
+
+    } catch (error) {
+      console.error(`Error fetching image for story ${story.title}:`, error);
+      // Try category-based search as last resort
+      if (retryCount === 0) {
+        return this.getImageForCategory(story.category);
+      }
+      return this.getFallbackImage(story.category);
+    }
+  }
+
+  // Keep the old category-based method as fallback
+  async getImageForCategory(category) {
+    try {
+      if (!this.accessKey) {
+        return this.getFallbackImage(category);
+      }
+
+      const keywords = CATEGORY_KEYWORDS[category] || 'business startup';
+      const url = `${this.apiUrl}/search/photos`;
+      
+      const params = new URLSearchParams({
+        query: keywords,
+        per_page: 1,
+        orientation: 'landscape',
+        content_filter: 'high',
+        client_id: this.accessKey
+      });
+
+      const response = await fetch(`${url}?${params}`);
+      
+      if (!response.ok) {
+        console.warn(`Unsplash category search failed: ${response.status}`);
+        return this.getFallbackImage(category);
       }
 
       const data = await response.json();
@@ -74,20 +150,89 @@ class UnsplashService {
           downloadUrl: photo.links.download_location
         };
       } else {
-        console.warn(`No images found for category: ${category}`);
         return this.getFallbackImage(category);
       }
 
     } catch (error) {
-      console.error(`Error fetching image for ${category}:`, error);
+      console.error(`Error in category search for ${category}:`, error);
       return this.getFallbackImage(category);
     }
+  }
+
+  generateKeywordsFromStory(story) {
+    // Extract key terms from title and combine with industry tags and location
+    const titleWords = story.title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '') // Remove special characters
+      .split(' ')
+      .filter(word => word.length > 3 && !this.isStopWord(word))
+      .slice(0, 3); // Take first 3 meaningful words
+
+    // Add industry context
+    const industryKeywords = story.industryTags
+      .map(tag => tag.toLowerCase())
+      .slice(0, 2); // Take first 2 industry tags
+
+    // Add location context if it's a major city
+    const locationKeywords = this.getLocationKeywords(story.locationStartup);
+
+    // Add failure context
+    const failureKeywords = this.getFailureKeywords(story.reasonForFailure);
+
+    // Combine all keywords
+    const allKeywords = [
+      ...titleWords,
+      ...industryKeywords,
+      ...locationKeywords,
+      ...failureKeywords
+    ].filter(Boolean).slice(0, 6); // Limit to 6 keywords max
+
+    return allKeywords.join(' ');
+  }
+
+  isStopWord(word) {
+    const stopWords = ['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'how', 'why', 'what', 'when', 'where'];
+    return stopWords.includes(word);
+  }
+
+  getLocationKeywords(location) {
+    const majorCities = {
+      'san francisco': ['silicon valley', 'tech'],
+      'new york': ['wall street', 'finance'],
+      'london': ['financial district', 'business'],
+      'tokyo': ['technology', 'innovation'],
+      'berlin': ['startup', 'tech'],
+      'austin': ['tech', 'startup'],
+      'seattle': ['technology', 'corporate'],
+      'los angeles': ['entertainment', 'media']
+    };
+
+    const cityLower = location.toLowerCase();
+    for (const [city, keywords] of Object.entries(majorCities)) {
+      if (cityLower.includes(city)) {
+        return keywords;
+      }
+    }
+    return ['business', 'corporate'];
+  }
+
+  getFailureKeywords(reason) {
+    const reasonKeywords = {
+      'Market Fit': ['market research', 'customer'],
+      'Cash Flow': ['finance', 'money', 'funding'],
+      'Competition': ['competitors', 'market'],
+      'Product Issues': ['product', 'development'],
+      'Management': ['leadership', 'team'],
+      'Regulatory': ['legal', 'compliance']
+    };
+
+    return reasonKeywords[reason] || ['business', 'startup'];
   }
 
   async getImagesForStories(stories) {
     try {
       const imagePromises = stories.map(async (story) => {
-        const imageData = await this.getImageForCategory(story.category);
+        const imageData = await this.getImageForStory(story);
         return {
           ...story,
           image: imageData.url || imageData,

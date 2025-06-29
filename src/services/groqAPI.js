@@ -133,6 +133,8 @@ class GroqAPIService {
         throw new Error('No content received from Groq API');
       }
 
+      console.log('Raw content from Groq:', content);
+
       // Clean the content - remove any text before/after JSON
       let cleanContent = content.trim();
       
@@ -148,10 +150,39 @@ class GroqAPIService {
       // Extract only the JSON part
       cleanContent = cleanContent.substring(jsonStart, jsonEnd);
       
-      console.log('Parsed content from Groq:', cleanContent);
+      // Fix common JSON issues
+      cleanContent = cleanContent
+        .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*):/g, '$1"$2"$3:') // Add quotes to unquoted keys
+        .replace(/:\s*([a-zA-Z_][a-zA-Z0-9_]*)(\s*[,}])/g, ': "$1"$2') // Add quotes to unquoted string values
+        .replace(/:\s*'([^']*)'/g, ': "$1"') // Replace single quotes with double quotes
+        .replace(/,\s*}/g, '}') // Remove trailing commas
+        .replace(/,\s*]/g, ']'); // Remove trailing commas in arrays
+      
+      console.log('Cleaned content:', cleanContent);
 
       // Parse the JSON response
-      const stories = JSON.parse(cleanContent);
+      let stories;
+      try {
+        stories = JSON.parse(cleanContent);
+      } catch (parseError) {
+        console.error('JSON Parse Error:', parseError);
+        console.log('Failed content:', cleanContent);
+        
+        // Try to manually fix more JSON issues
+        try {
+          cleanContent = cleanContent
+            .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*):/g, '"$2":') // Fix keys
+            .replace(/:\s*([^"\[\{][^,}\]]*[^,}\]\s])(\s*[,}\]])/g, ': "$1"$2') // Fix values
+            .replace(/"(\d+)"/g, '$1') // Fix numbers that got quoted
+            .replace(/"(true|false|null)"/g, '$1'); // Fix booleans and null
+          
+          stories = JSON.parse(cleanContent);
+          console.log('Successfully parsed after manual fixes');
+        } catch (secondParseError) {
+          console.error('Second parse attempt failed:', secondParseError);
+          throw new Error('Unable to parse JSON response from Groq API');
+        }
+      }
       
       // Validate the response structure
       if (!Array.isArray(stories)) {
