@@ -1,0 +1,100 @@
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  min-height: 200px;
+}
+
+.loading-spinner {
+  position: relative;
+  border-radius: 50%;
+  border: 3px solid rgba(107, 70, 193, 0.2);
+  border-top: 3px solid var(--primary-purple);
+  animation: spin 1s linear infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gradient-card);
+  box-shadow: 0 8px 25px rgba(107, 70, 193, 0.3);
+}
+
+/* Size variants */
+.loading-small {
+  width: 30px;
+  height: 30px;
+}
+
+.loading-medium {
+  width: 50px;
+  height: 50px;
+}
+
+.loading-large {
+  width: 80px;
+  height: 80px;
+}
+
+.spinner-bulb {
+  font-size: 1.2rem;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.loading-small .spinner-bulb {
+  font-size: 0.8rem;
+}
+
+.loading-large .spinner-bulb {
+  font-size: 1.8rem;
+}
+
+.loading-text {
+  color: var(--text-secondary);
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.7;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+/* Fullscreen overlay variant */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(26, 27, 35, 0.9);
+  backdrop-filter: blur(10px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-overlay .loading-container {
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 3rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+}

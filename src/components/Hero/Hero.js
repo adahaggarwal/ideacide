@@ -1,0 +1,48 @@
+import React from 'react';
+import './Hero.css';
+
+const Hero = () => {
+  return (
+    <section className="hero">
+      <div className="hero-container">
+        {/* Light Bulb Image */}
+        <div className="hero-image">
+          <div className="bulb-container">
+            <div className="bulb-glow"></div>
+            <div className="bulb-icon">💡</div>
+            <div className="bulb-reflection"></div>
+          </div>
+        </div>
+
+        {/* Hero Content */}
+        <div className="hero-content">
+          <h1 className="hero-title">
+            Where Failure Fuels the Future
+          </h1>
+          <p className="hero-subtitle">
+            Learn from the past. Build smarter.
+          </p>
+
+          {/* Action Buttons */}
+          <div className="hero-buttons">
+            <button className="btn-primary">
+              Explore Stories
+            </button>
+            <button className="btn-secondary">
+              Try Failometer
+            </button>
+          </div>
+        </div>
+
+        {/* Background Effects */}
+        <div className="hero-bg-effects">
+          <div className="glow-effect glow-1"></div>
+          <div className="glow-effect glow-2"></div>
+          <div className="glow-effect glow-3"></div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default Hero;
