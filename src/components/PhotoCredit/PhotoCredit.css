@@ -1,0 +1,42 @@
+.photo-credit {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  background: rgba(0, 0, 0, 0.7);
+  color: rgba(255, 255, 255, 0.9);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  line-height: 1.2;
+  backdrop-filter: blur(4px);
+  z-index: 10;
+}
+
+.credit-text {
+  display: block;
+}
+
+.photographer-link,
+.unsplash-link {
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.photographer-link:hover,
+.unsplash-link:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.unsplash-link {
+  font-weight: 600;
+}
+
+/* Hide credit on mobile if needed */
+@media (max-width: 480px) {
+  .photo-credit {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.4rem;
+  }
+}
