@@ -3,11 +3,17 @@ import { useParams, useNavigate } from 'react-router-dom';
 import './StoryDetail.css';
 import { Header, Footer } from '../../components';
 import useStories from '../../hooks/useStories';
+import storyFallback from '../../assets/images/story_fallback.png';
 
 const StoryDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { stories, loading } = useStories();
+
+  const handleImageError = (event) => {
+    // Set fallback image when original image fails to load
+    event.target.src = storyFallback;
+  };
 
   // Find the story by ID
   const story = stories.find(s => s.id === parseInt(id));
@@ -62,6 +68,7 @@ const StoryDetail = () => {
                 src={story.image} 
                 alt={story.title}
                 className="story-hero-image"
+                onError={handleImageError}
               />
               <div className="story-overlay">
                 <div className="story-category-badge">{story.category}</div>

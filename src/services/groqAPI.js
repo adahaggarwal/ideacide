@@ -4,34 +4,59 @@ import unsplashAPI from './unsplashAPI';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_API_KEY = process.env.REACT_APP_GROQ_API_KEY;
 
-const GROQ_PROMPT = `Generate exactly 3 startup failure stories and return ONLY a valid JSON array. Do not include any explanatory text before or after the JSON.
+// Function to generate open-ended prompt that allows web research
+function generateOpenPrompt() {
+  return `You are tasked with researching and generating exactly 3 REAL startup failure stories. You should find diverse, factual information about different startup failures from various industries and time periods.
 
-Return this exact format:
+IMPORTANT: Your response must be ONLY valid JSON. Do not include:
+- Any explanatory text
+- Chat template tokens like <|start_header_id|>
+- Markdown formatting
+- Comments or notes
+- Any text before or after the JSON
+
+Start immediately with "[" and end with "]".
+
+Find 3 different startup failure stories from various sources. Look for:
+- Different industries (tech, healthcare, food, retail, etc.)
+- Different time periods (dot-com era, recent failures, etc.)
+- Different failure reasons (market fit, fraud, competition, etc.)
+- Well-documented cases with reliable information
+
+Ensure variety and avoid repeating the same companies. Research recent failures as well as historical ones.
+
+JSON format:
 [
   {
     "id": 1,
-    "title": "Story title here",
+    "title": "Company Name: Brief Description",
     "category": "Business Strategy",
-    "excerpt": "Brief summary",
+    "excerpt": "Brief factual summary",
     "locationStartup": "City, Country",
-    "detailedDescription": "200-word detailed description",
-    "lessons": 5,
+    "detailedDescription": "200 word analysis of company journey, business model, challenges, and failure reasons.",
+    "keyLessons": {
+      "analysis": "Brief analysis of why this startup failed",
+      "lessons": [
+        "Lesson 1",
+        "Lesson 2",
+        "Lesson 3",
+        "Lesson 4",
+        "Lesson 5"
+      ]
+    },
     "date": "YYYY-MM-DD",
-    "foundingYear": 2018,
-    "failureYear": 2020,
-    "fundingRaised": "$50M",
+    "foundingYear": YEAR,
+    "failureYear": YEAR,
+    "fundingRaised": "$AMOUNT",
     "keyFounders": ["Founder 1", "Founder 2"],
-    "industryTags": ["Tag1", "Tag2"],
-    "reasonForFailure": "Market Fit",
-    "sourceUrl": null
+    "industryTags": ["Tag1"],
+    "reasonForFailure": "Primary Reason",
+    "sourceUrl": "https://credible-source.com/article"
   }
 ]
 
-Categories: Business Strategy, Product Innovation, Healthcare Tech, Fintech, E-commerce, SaaS, Hardware, AI/ML, Social Media, Transportation
-
-Failure reasons: Market Fit, Cash Flow, Competition, Product Issues, Management, Regulatory
-
-IMPORTANT: Return ONLY the JSON array, no other text.`;
+Return ONLY the JSON array - nothing else. Research timestamp: ${Date.now()}`;
+}
 
 // Fallback data in case API fails
 const FALLBACK_STORIES = [
@@ -41,8 +66,17 @@ const FALLBACK_STORIES = [
     category: "Business Strategy",
     excerpt: "Quibi raised massive funding for short-form mobile video content but failed to find product-market fit during the pandemic.",
     locationStartup: "Los Angeles, USA",
-    detailedDescription: "Quibi was a short-form mobile video streaming platform founded by Jeffrey Katzenberg and Meg Whitman. Despite raising $1.75 billion in funding, the company struggled with user adoption and content discovery. Launched during the COVID-19 pandemic when people were staying home, the mobile-first platform missed the mark as users preferred watching content on larger screens. The company's premium pricing model and lack of social features also hindered growth. Quibi shut down just six months after launch, with its content library sold to Roku. The failure highlighted the importance of timing, market research, and understanding consumer behavior during unprecedented times.",
-    lessons: 5,
+    detailedDescription: "Quibi was a short-form mobile video streaming platform founded by Jeffrey Katzenberg and Meg Whitman in 2018. The company's ambitious vision was to create premium, short-form content specifically designed for mobile viewing, targeting users during commutes and short breaks. Despite raising an unprecedented $1.75 billion in funding from major investors and Hollywood studios, Quibi faced immediate challenges upon its April 2020 launch. The timing couldn't have been worse – launching during the COVID-19 pandemic when people were staying home and had access to large screens, making mobile-only content less appealing. The platform's content, while high-quality and featuring A-list celebrities, failed to resonate with audiences who were accustomed to free, user-generated content on platforms like TikTok and Instagram. Quibi's premium pricing model of $4.99 per month (with ads) or $7.99 (ad-free) seemed excessive compared to free alternatives. The app lacked basic social features like sharing clips or commenting, which were essential for viral content distribution. Technical issues plagued the platform, including the inability to cast content to TVs and poor content discovery mechanisms. User retention rates were dismal, with most subscribers canceling after the free trial period. By October 2020, just six months after launch, Quibi announced it was shutting down, with its content library eventually sold to Roku for an undisclosed amount. The failure highlighted the critical importance of market timing, understanding consumer behavior during crisis periods, and the challenges of competing in an oversaturated streaming market.",
+    keyLessons: {
+      analysis: "Quibi's failure was a perfect storm of poor timing, market misunderstanding, and overconfidence in an unproven business model. The company launched a mobile-first, premium short-form video platform during a pandemic when people were staying home with large screens. Despite raising unprecedented funding and hiring Hollywood talent, they failed to understand their target market, ignored the success of free platforms like TikTok, and built a product that lacked basic social features essential for viral content distribution.",
+      lessons: [
+        "Market timing is crucial - launching a mobile-first platform during a pandemic when people were home with large screens showed poor market awareness and adaptability",
+        "Understand your competition - competing against free platforms like TikTok with premium pricing requires exceptional value proposition and differentiation",
+        "User behavior research is essential - assuming commuters would pay for premium short-form content without validating this assumption led to fundamental misalignment",
+        "Social features are not optional - modern content platforms require sharing, commenting, and viral distribution mechanisms to succeed",
+        "Technical execution matters - basic features like TV casting and content discovery are table stakes in the streaming industry and cannot be overlooked"
+      ]
+    },
     date: "2020-10-21",
     foundingYear: 2018,
     failureYear: 2020,
@@ -58,8 +92,17 @@ const FALLBACK_STORIES = [
     category: "Healthcare Tech",
     excerpt: "Elizabeth Holmes built a $9 billion company on promises of revolutionary blood testing technology that never actually worked.",
     locationStartup: "Palo Alto, USA",
-    detailedDescription: "Theranos claimed to revolutionize blood testing with technology that could run hundreds of tests from a single drop of blood. Founded by Elizabeth Holmes, the company reached a valuation of $9 billion and partnerships with major retailers like Walgreens. However, investigations revealed that the technology didn't work as promised, and the company was using traditional machines for most tests while diluting small blood samples. Whistleblowers exposed the fraud, leading to regulatory investigations and criminal charges. Holmes was convicted of fraud and conspiracy, highlighting the dangers of hype over substance in healthcare technology and the importance of regulatory oversight in medical devices.",
-    lessons: 8,
+    detailedDescription: "Theranos, founded by Elizabeth Holmes in 2003, claimed to revolutionize blood testing with proprietary technology that could run hundreds of tests from a single drop of blood using devices called 'Edison' machines. The company's narrative was compelling: faster, cheaper, and less invasive blood testing that could democratize healthcare. Holmes, a Stanford dropout, became Silicon Valley's youngest female billionaire as Theranos reached a valuation of $9 billion by 2014. The company secured high-profile partnerships with Walgreens and Safeway, planning to place testing centers in retail locations nationwide. However, the revolutionary technology was largely fictional. Internal investigations later revealed that Theranos was using traditional third-party machines for most tests, diluting tiny blood samples to dangerous levels, and producing unreliable results that could have led to misdiagnoses and patient harm. Whistleblowers, including former employees Tyler Schultz and Erika Cheung, began exposing the company's fraudulent practices in 2015. Wall Street Journal reporter John Carreyrou's investigation revealed the extent of the deception, leading to regulatory scrutiny from the FDA and CMS. The company's lab was found to be violating federal safety standards, and its technology claims were debunked by medical experts. As the truth emerged, partnerships crumbled, lawsuits mounted, and investors lost hundreds of millions. Holmes was eventually convicted of fraud and conspiracy charges in 2022, sentenced to over 11 years in prison. The scandal highlighted the dangerous intersection of Silicon Valley's 'fake it till you make it' culture with healthcare, where unproven technology can literally be a matter of life and death.",
+    keyLessons: {
+      analysis: "Theranos represents one of the most egregious cases of fraud in Silicon Valley history, where the 'fake it till you make it' culture met life-threatening consequences. Elizabeth Holmes built a $9 billion company on completely fictional technology claims, exploiting investor FOMO and media hype while putting patient lives at risk with unreliable blood tests. The scandal exposed fundamental flaws in venture capital due diligence, board oversight, and regulatory processes in the healthcare technology sector.",
+      lessons: [
+        "Healthcare technology requires rigorous scientific validation - the 'fake it till you make it' approach can be deadly when dealing with medical diagnoses and patient safety",
+        "Regulatory compliance is non-negotiable - healthcare companies must work with regulators from day one, not treat them as obstacles to overcome later",
+        "Transparency builds trust - secretive operations and NDAs in healthcare raise red flags and ultimately undermine credibility when scrutinized",
+        "Board composition matters - stacking boards with famous names instead of relevant experts can enable fraud and poor oversight",
+        "Whistleblower protection is crucial - companies that silence dissent and ignore internal warnings are often hiding fundamental problems that will eventually surface"
+      ]
+    },
     date: "2018-09-05",
     foundingYear: 2003,
     failureYear: 2018,
@@ -75,8 +118,17 @@ const FALLBACK_STORIES = [
     category: "Product Innovation",
     excerpt: "Zume Pizza promised robotic pizza making and autonomous delivery but burned through $375 million without achieving sustainable operations.",
     locationStartup: "Mountain View, USA",
-    detailedDescription: "Zume Pizza aimed to revolutionize food delivery using robots to make pizza and autonomous vehicles for delivery. The company raised significant funding from SoftBank and other investors, promising to reduce costs and improve efficiency through automation. However, the robotic pizza-making technology was unreliable, often producing inconsistent results. The autonomous delivery vehicles faced regulatory and technical challenges, while the business model proved unsustainable with high operational costs. Customer complaints about food quality and delivery times mounted, and the company struggled to scale beyond a few locations. Zume eventually pivoted away from pizza to focus on food packaging technology before ultimately shutting down operations.",
-    lessons: 6,
+    detailedDescription: "Zume Pizza, founded in 2015 by Alex Garden and Julia Collins, aimed to revolutionize food delivery by combining robotic pizza-making technology with autonomous delivery vehicles. The company's vision was ambitious: robots would prepare pizzas in mobile kitchens while en route to customers, ensuring hot, fresh delivery while reducing labor costs and delivery times. SoftBank's Vision Fund led a massive $375 million funding round in 2018, valuing the company at over $2 billion and betting big on the future of food automation. The robotic pizza-making process involved machines that spread sauce, added toppings, and managed cooking times with precision. However, the technology proved far more complex than anticipated. The robots frequently malfunctioned, producing inconsistent pizzas with uneven sauce distribution and toppings. The mobile kitchen concept faced regulatory hurdles, as cooking food in moving vehicles violated health department regulations in most jurisdictions. Autonomous delivery vehicles were still years away from commercial viability, forcing the company to rely on human drivers. Customer feedback was largely negative, with complaints about cold pizzas, wrong orders, and long delivery times becoming common. The unit economics never worked – the cost of maintaining sophisticated robotic equipment, combined with low pizza margins, made profitability impossible. As the company struggled to scale beyond a few locations in California, it began pivoting away from pizza delivery. In 2019, Zume shifted focus to food packaging technology and logistics, but the pivot came too late. The company laid off hundreds of employees and ultimately shut down operations in 2020, leaving investors with massive losses and serving as a cautionary tale about the challenges of applying complex automation to simple food service operations.",
+    keyLessons: {
+      analysis: "Zume Pizza's failure illustrates the dangers of over-engineering simple problems and the importance of unit economics in technology businesses. The company applied complex robotic automation and autonomous vehicle technology to pizza delivery, creating massive operational complexity and costs that could never be justified by pizza margins. Their failure demonstrates how impressive technology means nothing without a sustainable business model and customer-focused execution.",
+      lessons: [
+        "Technology complexity should match problem complexity - over-engineering simple processes like pizza making can create more problems than it solves",
+        "Regulatory research is essential - understanding health department rules and autonomous vehicle regulations before building the business model could have saved millions",
+        "Unit economics must work at scale - impressive technology means nothing if the fundamental business model cannot generate sustainable profits",
+        "Customer experience trumps innovation - customers care more about hot, tasty food delivered quickly than the technology behind it",
+        "Pilot thoroughly before scaling - massive fundraising and expansion without proving the technology works reliably in real-world conditions leads to spectacular failures"
+      ]
+    },
     date: "2020-01-08",
     foundingYear: 2015,
     failureYear: 2020,
@@ -84,7 +136,7 @@ const FALLBACK_STORIES = [
     keyFounders: ["Alex Garden", "Julia Collins"],
     industryTags: ["Food Tech", "Robotics", "Delivery"],
     reasonForFailure: "Product Issues",
-    sourceUrl: null
+    sourceUrl: "https://techcrunch.com/2020/01/08/zume-pizza-reportedly-shuts-down-pizza-robot-business/"
   }
 ];
 
@@ -94,13 +146,63 @@ class GroqAPIService {
     this.apiUrl = GROQ_API_URL;
   }
 
+  // Simplified JSON parsing with better error handling
+  parseJSONResponse(jsonString) {
+    console.log('=== JSON PARSING DEBUG ===');
+    console.log('Input length:', jsonString.length);
+    console.log('First 100 chars:', jsonString.substring(0, 100));
+    
+    // Clean the JSON string
+    let cleaned = jsonString.trim();
+    
+    // Remove any LLaMA chat template tokens
+    cleaned = cleaned
+      .replace(/<\|start_header_id\|>/g, '')
+      .replace(/<\|end_header_id\|>/g, '')
+      .replace(/<\|[^>]*\|>/g, '')
+      .trim();
+    
+    // Find JSON array boundaries
+    const jsonStart = cleaned.indexOf('[');
+    const jsonEnd = cleaned.lastIndexOf(']');
+    
+    if (jsonStart === -1 || jsonEnd === -1 || jsonStart >= jsonEnd) {
+      console.warn('No valid JSON array found in response');
+      throw new Error('No valid JSON array found in response');
+    }
+    
+    // Extract only the JSON portion
+    const jsonOnly = cleaned.substring(jsonStart, jsonEnd + 1);
+    console.log('Extracted JSON length:', jsonOnly.length);
+    
+    try {
+      const parsed = JSON.parse(jsonOnly);
+      console.log('Successfully parsed JSON with', parsed.length, 'stories');
+      return parsed;
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError.message);
+      console.log('Failed JSON sample:', jsonOnly.substring(0, 200));
+      
+      // If parsing fails, use fallback data
+      console.log('Using fallback data due to JSON parse error');
+      throw new Error('JSON parsing failed - using fallback data');
+    }
+  }
+
   async fetchStories() {
     try {
       if (!this.apiKey) {
-        console.warn('Groq API key not found. Using fallback data.');
-        return FALLBACK_STORIES;
+        console.warn('❌ Groq API key not found. Using fallback data.');
+        const fallbackWithImages = await unsplashAPI.getImagesForStories(FALLBACK_STORIES);
+        return fallbackWithImages;
       }
 
+      console.log('🚀 Making API call to Groq for dynamic startup failure research...');
+      
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      
       const response = await fetch(this.apiUrl, {
         method: 'POST',
         headers: {
@@ -111,77 +213,60 @@ class GroqAPIService {
           messages: [
             {
               role: 'user',
-              content: GROQ_PROMPT
+              content: generateOpenPrompt() // Generate open research prompt
             }
           ],
-          model: 'llama3-8b-8192',
-          temperature: 0.7,
-          max_tokens: 4000,
-          top_p: 1,
+          model: 'llama-3.1-8b-instant',
+          temperature: 0.1,
+          max_tokens: 12000,
+          top_p: 0.9,
           stream: false
-        })
+        }),
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
+        console.error('❌ HTTP error! status:', response.status);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
+      console.log('✅ API response received successfully');
       const data = await response.json();
       const content = data.choices[0]?.message?.content;
 
       if (!content) {
+        console.error('❌ No content received from Groq API');
         throw new Error('No content received from Groq API');
       }
 
-      console.log('Raw content from Groq:', content);
+      console.log('📝 Raw content from Groq received, length:', content.length);
 
-      // Clean the content - remove any text before/after JSON
+      // Clean the content for JSON parsing
       let cleanContent = content.trim();
+      console.log('Raw content sample:', cleanContent.substring(0, 200));
       
-      // Find the JSON array start and end
-      const jsonStart = cleanContent.indexOf('[');
-      const jsonEnd = cleanContent.lastIndexOf(']') + 1;
-      
-      if (jsonStart === -1 || jsonEnd === 0) {
-        console.warn('Invalid JSON format from Groq API:', content);
-        throw new Error('Invalid JSON format received from API');
-      }
-      
-      // Extract only the JSON part
-      cleanContent = cleanContent.substring(jsonStart, jsonEnd);
-      
-      // Fix common JSON issues
+      // Remove any potential LLaMA chat template tokens
       cleanContent = cleanContent
-        .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*):/g, '$1"$2"$3:') // Add quotes to unquoted keys
-        .replace(/:\s*([a-zA-Z_][a-zA-Z0-9_]*)(\s*[,}])/g, ': "$1"$2') // Add quotes to unquoted string values
-        .replace(/:\s*'([^']*)'/g, ': "$1"') // Replace single quotes with double quotes
-        .replace(/,\s*}/g, '}') // Remove trailing commas
-        .replace(/,\s*]/g, ']'); // Remove trailing commas in arrays
+        .replace(/<\|start_header_id\|>/g, '')
+        .replace(/<\|end_header_id\|>/g, '')
+        .replace(/<\|[^>]*\|>/g, '')
+        .trim();
       
-      console.log('Cleaned content:', cleanContent);
+      console.log('Cleaned content ready for parsing:', cleanContent.substring(0, 200) + '...');
 
-      // Parse the JSON response
+      // Parse the JSON response using simplified parsing
       let stories;
       try {
-        stories = JSON.parse(cleanContent);
+        console.log('🔍 Attempting to parse JSON response...');
+        stories = this.parseJSONResponse(cleanContent);
+        console.log('✅ Successfully parsed JSON with', stories.length, 'stories');
       } catch (parseError) {
-        console.error('JSON Parse Error:', parseError);
-        console.log('Failed content:', cleanContent);
-        
-        // Try to manually fix more JSON issues
-        try {
-          cleanContent = cleanContent
-            .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*):/g, '"$2":') // Fix keys
-            .replace(/:\s*([^"\[\{][^,}\]]*[^,}\]\s])(\s*[,}\]])/g, ': "$1"$2') // Fix values
-            .replace(/"(\d+)"/g, '$1') // Fix numbers that got quoted
-            .replace(/"(true|false|null)"/g, '$1'); // Fix booleans and null
-          
-          stories = JSON.parse(cleanContent);
-          console.log('Successfully parsed after manual fixes');
-        } catch (secondParseError) {
-          console.error('Second parse attempt failed:', secondParseError);
-          throw new Error('Unable to parse JSON response from Groq API');
-        }
+        console.error('❌ JSON parsing failed:', parseError.message);
+        console.log('Failed content sample:', cleanContent.substring(0, 300));
+        console.log('🛠️ Falling back to hardcoded stories...');
+        throw new Error(`Unable to parse JSON response from Groq API. Error: ${parseError.message}`);
       }
       
       // Validate the response structure
@@ -190,17 +275,18 @@ class GroqAPIService {
       }
 
       // Fetch images from Unsplash for each story
-      console.log('Fetching images from Unsplash...');
+      console.log('🖼️ Fetching images from Unsplash for', stories.length, 'stories...');
       const storiesWithImages = await unsplashAPI.getImagesForStories(stories);
       
-      console.log('Stories with images:', storiesWithImages);
+      console.log('✅ SUCCESS: Returning', storiesWithImages.length, 'fresh stories from Groq API');
       return storiesWithImages;
 
     } catch (error) {
-      console.error('Error fetching stories from Groq:', error);
+      console.error('❌ Error fetching stories from Groq:', error.message);
+      console.log('🛠️ Error details:', error);
       
       // Return fallback data if API fails
-      console.log('Using fallback stories due to API error');
+      console.log('📚 Using fallback stories due to API error');
       const fallbackWithImages = await unsplashAPI.getImagesForStories(FALLBACK_STORIES);
       return fallbackWithImages;
     }
