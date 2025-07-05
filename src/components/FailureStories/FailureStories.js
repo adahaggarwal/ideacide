@@ -1,15 +1,27 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './FailureStories.css';
 import useStories from '../../hooks/useStories';
 import { Loading } from '../index';
 import unsplashAPI from '../../services/unsplashAPI';
+import storyFallback from '../../assets/images/story_fallback.png';
 
 const FailureStories = () => {
   const { stories, loading, error, lastUpdated, refreshStories } = useStories();
+  const navigate = useNavigate();
 
   const handleImageLoad = (downloadUrl) => {
     // Trigger download tracking for Unsplash API compliance
     unsplashAPI.triggerDownload(downloadUrl);
+  };
+
+  const handleImageError = (event) => {
+    // Set fallback image when original image fails to load
+    event.target.src = storyFallback;
+  };
+
+  const handleReadMore = (storyId) => {
+    navigate(`/story/${storyId}`);
   };
 
   if (loading) {
@@ -75,6 +87,7 @@ const FailureStories = () => {
                   src={story.image} 
                   alt={story.imageData?.alt || story.title} 
                   onLoad={() => story.imageData?.downloadUrl && handleImageLoad(story.imageData.downloadUrl)}
+                  onError={handleImageError}
                 />
                 <div className="story-category">{story.category}</div>
                 <div className="story-location">{story.locationStartup}</div>
@@ -115,7 +128,10 @@ const FailureStories = () => {
                   </span>
                 </div>
 
-                <button className="read-more-btn">
+                <button 
+                  className="read-more-btn"
+                  onClick={() => handleReadMore(story.id)}
+                >
                   Read Full Story
                   <svg
                     width="16"
