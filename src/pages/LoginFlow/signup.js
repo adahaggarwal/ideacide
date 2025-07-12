@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { createAccount, signInWithGoogle, getFirebaseErrorMessage } from '../../services/auth';
 import logo from '../../assets/images/final logo.svg';
 import googleLogo from '../../assets/images/google_symbol.svg';
 import './index.css';
@@ -7,9 +8,69 @@ import './index.css';
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
   const toggleConfirmPasswordVisibility = () => setShowConfirmPassword((prev) => !prev);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
+
+    // Validate password length
+    if (formData.password.length < 6) {
+      setError('Password should be at least 6 characters');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      await createAccount(formData.email, formData.password, formData.fullName);
+      navigate('/'); // Redirect to home page after successful signup
+    } catch (error) {
+      setError(getFirebaseErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      await signInWithGoogle();
+      navigate('/'); // Redirect to home page after successful login
+    } catch (error) {
+      setError(getFirebaseErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="container">
@@ -18,14 +79,49 @@ const SignUp = () => {
           <img src={logo} alt="Logo" className="logo" />
         </div>
         <h2>Sign Up</h2>
-        <form>
-          <input type="text" placeholder="Full Name" required />
-          <input type="email" placeholder="Email Address" required />
+        
+        {error && (
+          <div style={{ 
+            color: '#ff4444', 
+            backgroundColor: '#ffebee', 
+            padding: '10px', 
+            borderRadius: '5px', 
+            marginBottom: '15px',
+            textAlign: 'center',
+            fontSize: '14px'
+          }}>
+            {error}
+          </div>
+        )}
+        
+        <form onSubmit={handleSubmit}>
+          <input 
+            type="text" 
+            name="fullName"
+            placeholder="Full Name" 
+            value={formData.fullName}
+            onChange={handleInputChange}
+            required 
+            disabled={loading}
+          />
+          <input 
+            type="email" 
+            name="email"
+            placeholder="Email Address" 
+            value={formData.email}
+            onChange={handleInputChange}
+            required 
+            disabled={loading}
+          />
           <div className="password-field">
             <input
               type={showPassword ? 'text' : 'password'}
+              name="password"
               placeholder="Create Password"
+              value={formData.password}
+              onChange={handleInputChange}
               required
+              disabled={loading}
             />
             <span
               className="eye-icon"
@@ -39,8 +135,12 @@ const SignUp = () => {
           <div className="password-field">
             <input
               type={showConfirmPassword ? 'text' : 'password'}
+              name="confirmPassword"
               placeholder="Confirm Password"
+              value={formData.confirmPassword}
+              onChange={handleInputChange}
               required
+              disabled={loading}
             />
             <span
               className="eye-icon"
@@ -51,12 +151,29 @@ const SignUp = () => {
               {showConfirmPassword ? '🙈' : '👁️'}
             </span>
           </div>
-          <button type="submit" className="signup-btn">Sign Up</button>
+          <button 
+            type="submit" 
+            className="signup-btn"
+            disabled={loading}
+            style={{
+              opacity: loading ? 0.7 : 1,
+              cursor: loading ? 'not-allowed' : 'pointer'
+            }}
+          >
+            {loading ? 'Creating Account...' : 'Sign Up'}
+          </button>
         </form>
         <p className="or">Or</p>
-        <div className="google-signin">
+        <div 
+          className="google-signin"
+          style={{
+            cursor: loading ? 'not-allowed' : 'pointer',
+            opacity: loading ? 0.7 : 1
+          }}
+          onClick={handleGoogleSignIn}
+        >
           <img src={googleLogo} alt="Google" />
-          <span>Sign In with Google</span>
+          <span>{loading ? 'Signing In...' : 'Sign In with Google'}</span>
         </div>
         <p className="signin-link">
           Already have an account? <Link to="/signin">Sign In</Link>
