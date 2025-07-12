@@ -58,7 +58,16 @@ export const resetPassword = async (email) => {
 export const signInWithGoogle = async () => {
   try {
     const provider = new GoogleAuthProvider();
+    // Optional: Add scopes if needed
+    // provider.addScope('profile');
+    // provider.addScope('email');
+    
     const result = await signInWithPopup(auth, provider);
+    
+    // Optional: Get additional user info
+    // const credential = GoogleAuthProvider.credentialFromResult(result);
+    // const token = credential.accessToken;
+    
     return result.user;
   } catch (error) {
     throw error;
@@ -82,6 +91,15 @@ export const getFirebaseErrorMessage = (error) => {
       return 'Too many failed login attempts. Please try again later.';
     case 'auth/network-request-failed':
       return 'Network error. Please check your internet connection.';
+    // Google Auth specific errors
+    case 'auth/popup-closed-by-user':
+      return 'Google sign-in was cancelled.';
+    case 'auth/popup-blocked':
+      return 'Google sign-in popup was blocked. Please allow popups and try again.';
+    case 'auth/cancelled-popup-request':
+      return 'Google sign-in was cancelled.';
+    case 'auth/unauthorized-domain':
+      return 'This domain is not authorized for Google sign-in.';
     default:
       return error.message;
   }
