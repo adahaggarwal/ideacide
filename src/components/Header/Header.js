@@ -1,9 +1,16 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Header.css';
 import colors from '../../constants/colors';
 import logo from '../../assets/images/final logo.svg';
 
 const Header = () => {
+  const navigate = useNavigate();
+
+  const handleSignUpClick = () => {
+    navigate('/signup');
+  };
+
   return (
     <header className="header">
       <div className="header-container">
@@ -28,7 +35,7 @@ const Header = () => {
         </nav>
 
         {/* Sign Up Button */}
-        <button className="signup-button">
+        <button className="signup-button" onClick={handleSignUpClick}>
           Sign Up
         </button>
       </div>
