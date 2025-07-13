@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './UserStories.css';
 import useUserStories from '../../hooks/useUserStories';
 import { Loading } from '../index';
+import { storiesService } from '../../services/storiesService';
 
 const UserStories = () => {
   const { stories, loading, error, lastUpdated, refreshStories } = useUserStories(6);
   const navigate = useNavigate();
+  const [likedStories, setLikedStories] = useState(new Set());
+  const [likingStories, setLikingStories] = useState(new Set());
 
   const handleReadMore = (storyId) => {
     navigate(`/story/${storyId}`);
@@ -14,6 +17,39 @@ const UserStories = () => {
 
   const handleCreateStory = () => {
     navigate('/create-story');
+  };
+
+  const handleLike = async (storyId, currentLikes) => {
+    if (likingStories.has(storyId)) return; // Prevent double-clicking
+    
+    setLikingStories(prev => new Set([...prev, storyId]));
+    
+    try {
+      const isLiked = likedStories.has(storyId);
+      await storiesService.toggleLike(storyId, !isLiked);
+      
+      // Update local state
+      if (isLiked) {
+        setLikedStories(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(storyId);
+          return newSet;
+        });
+      } else {
+        setLikedStories(prev => new Set([...prev, storyId]));
+      }
+      
+      // Refresh stories to get updated like count
+      refreshStories();
+    } catch (error) {
+      console.error('Error toggling like:', error);
+    } finally {
+      setLikingStories(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(storyId);
+        return newSet;
+      });
+    }
   };
 
   const truncateText = (text, maxLength = 150) => {
@@ -144,8 +180,23 @@ const UserStories = () => {
                     )}
 
                     <div className="user-story-stats">
-                      <span className="story-stat">👁️ {story.views || 0}</span>
-                      <span className="story-stat">❤️ {story.likes || 0}</span>
+                      <button 
+                        className={`like-button ${likedStories.has(story.id) ? 'liked' : ''}`}
+                        onClick={() => handleLike(story.id, story.likes)}
+                        disabled={likingStories.has(story.id)}
+                      >
+                        <svg 
+                          width="20" 
+                          height="20" 
+                          viewBox="0 0 24 24" 
+                          fill={likedStories.has(story.id) ? "currentColor" : "none"}
+                          stroke="currentColor" 
+                          strokeWidth="2"
+                        >
+                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                        </svg>
+                        <span>{story.likes || 0}</span>
+                      </button>
                     </div>
 
                     <button

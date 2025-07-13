@@ -211,7 +211,7 @@
 }
 
 .btn-tertiary {
-  background: linear-gradient(135deg, #10B981, #34D399);
+  background: linear-gradient(135deg, #14B8A6, #06D6A0);
   color: white;
   border: none;
   padding: 1rem 2rem;
@@ -220,7 +220,7 @@
   font-size: 1.1rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 6px 20px rgba(20, 184, 166, 0.4);
   position: relative;
   overflow: hidden;
 }
@@ -242,7 +242,7 @@
 
 .btn-tertiary:hover {
   transform: translateY(-3px);
-  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.5);
+  box-shadow: 0 10px 30px rgba(20, 184, 166, 0.5);
 }
 
 /* Background Effects */

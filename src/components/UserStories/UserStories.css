@@ -20,7 +20,7 @@
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 1rem;
-  background: linear-gradient(135deg, #10B981, #34D399);
+  background: linear-gradient(135deg, #14B8A6, #06D6A0);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -50,7 +50,7 @@
 }
 
 .create-story-button {
-  background: linear-gradient(135deg, #10B981, #34D399);
+  background: linear-gradient(135deg, #14B8A6, #06D6A0);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -58,12 +58,12 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
 }
 
 .create-story-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 6px 20px rgba(20, 184, 166, 0.4);
 }
 
 /* No Stories State */
@@ -154,13 +154,13 @@
   position: absolute;
   top: 1rem;
   left: 1rem;
-  background: linear-gradient(135deg, #10B981, #34D399);
+  background: linear-gradient(135deg, #14B8A6, #06D6A0);
   color: white;
   padding: 0.3rem 0.8rem;
   border-radius: 20px;
   font-size: 0.8rem;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 2px 8px rgba(20, 184, 166, 0.3);
 }
 
 .user-story-content {
@@ -206,7 +206,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #10B981, #34D399);
+  background: linear-gradient(135deg, #14B8A6, #06D6A0);
   color: white;
   display: flex;
   align-items: center;
@@ -254,6 +254,42 @@
   display: flex;
   gap: 1rem;
   margin-bottom: 1rem;
+}
+
+.like-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+  transition: all 0.3s ease;
+  padding: 0.5rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.like-button:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.like-button.liked {
+  color: #ef4444;
+}
+
+.like-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.like-button svg {
+  transition: transform 0.2s ease;
+}
+
+.like-button:hover svg {
+  transform: scale(1.1);
 }
 
 .story-stat {
@@ -311,8 +347,8 @@
 }
 
 .view-all-user-stories-btn:hover {
-  border-color: #10B981;
-  background: rgba(16, 185, 129, 0.1);
+  border-color: #14B8A6;
+  background: rgba(20, 184, 166, 0.1);
   transform: translateY(-2px);
 }
 
