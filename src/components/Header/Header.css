@@ -89,6 +89,25 @@
   width: 100%;
 }
 
+.create-story-link {
+  background: var(--gradient-button) !important;
+  color: var(--text-primary) !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 20px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 8px rgba(107, 70, 193, 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+.create-story-link:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(107, 70, 193, 0.4) !important;
+}
+
+.create-story-link::after {
+  display: none !important;
+}
+
 /* Sign Up Button */
 .signup-button {
   background: var(--gradient-button);

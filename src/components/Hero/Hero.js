@@ -1,7 +1,28 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import './Hero.css';
 
 const Hero = () => {
+  const navigate = useNavigate();
+  const { currentUser } = useAuth();
+
+  const handleExploreStories = () => {
+    // Scroll to stories section
+    document.getElementById('stories')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleTryFailometer = () => {
+    navigate('/sandbox');
+  };
+
+  const handleShareStory = () => {
+    if (currentUser) {
+      navigate('/create-story');
+    } else {
+      navigate('/signin');
+    }
+  };
   return (
     <section className="hero">
       <div className="hero-container">
@@ -25,11 +46,14 @@ const Hero = () => {
 
           {/* Action Buttons */}
           <div className="hero-buttons">
-            <button className="btn-primary">
+            <button className="btn-primary" onClick={handleExploreStories}>
               Explore Stories
             </button>
-            <button className="btn-secondary">
-              Try Failometer
+            <button className="btn-secondary" onClick={handleTryFailometer}>
+              Try Sandbox
+            </button>
+            <button className="btn-tertiary" onClick={handleShareStory}>
+              📝 Share Your Story
             </button>
           </div>
         </div>

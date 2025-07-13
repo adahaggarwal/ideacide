@@ -82,6 +82,11 @@ const Header = () => {
           <a href="/sandbox" className="nav-link">Sandbox</a>
           <a href="/chatbot" className="nav-link">AI Chatbot</a>
           <a href="#collaboration" className="nav-link">Collaboration</a>
+          {currentUser && (
+            <a href="/create-story" className="nav-link create-story-link">
+              ✍️ Tell Your Story
+            </a>
+          )}
         </nav>
 
         {/* Profile Section or Sign Up Button */}

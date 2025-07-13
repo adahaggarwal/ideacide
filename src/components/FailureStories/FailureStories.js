@@ -26,7 +26,7 @@ const FailureStories = () => {
 
   if (loading) {
     return (
-      <section className="failure-stories">
+      <section id="stories" className="failure-stories">
         <div className="stories-container">
           <div className="stories-header">
             <h2 className="stories-title">Latest Failure Stories</h2>
