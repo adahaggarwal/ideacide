@@ -63,11 +63,12 @@ const SignUp = () => {
     setError('');
 
     try {
+      // This will redirect to Google, so we don't need to handle the result here
       await signInWithGoogle();
-      navigate('/'); // Redirect to home page after successful login
+      // The page will redirect, so this code won't execute
     } catch (error) {
+      console.error('Google sign-in error:', error);
       setError(getFirebaseErrorMessage(error));
-    } finally {
       setLoading(false);
     }
   };
