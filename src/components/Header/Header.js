@@ -30,7 +30,7 @@ const Header = () => {
         <nav className="nav-links">
           <a href="#stories" className="nav-link">Stories</a>
           <a href="/sandbox" className="nav-link">Sandbox</a>
-          <a href="#ai-chatbot" className="nav-link">AI Chatbot</a>
+          <a href="/chatbot" className="nav-link">AI Chatbot</a>
           <a href="#collaboration" className="nav-link">Collaboration</a>
         </nav>
 
