@@ -1,14 +1,76 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './FailureStories.css';
 import useStories from '../../hooks/useStories';
 import { Loading } from '../index';
 import unsplashAPI from '../../services/unsplashAPI';
 import storyFallback from '../../assets/images/story_fallback.png';
+import groqAPI from '../../services/groqAPI';
 
 const FailureStories = () => {
-  const { stories, loading, error, lastUpdated, refreshStories } = useStories();
+  const { stories: initialStories, loading, error, lastUpdated, refreshStories } = useStories();
   const navigate = useNavigate();
+
+  const INITIAL_COUNT = 3;
+  const STORIES_PER_BATCH = 10;
+  const [stories, setStories] = useState([]); // All stories to display
+  const [viewAllClicked, setViewAllClicked] = useState(false);
+  const [fetching, setFetching] = useState(false);
+  const [allViewed, setAllViewed] = useState(false);
+
+  // On first render, show initial 3 stories
+  React.useEffect(() => {
+    setStories(initialStories.slice(0, INITIAL_COUNT));
+  }, [initialStories]);
+
+  const handleViewAllStories = async () => {
+    setViewAllClicked(true);
+    setFetching(true);
+    try {
+      const newStories = await groqAPI.fetchStories(STORIES_PER_BATCH);
+      if (newStories && newStories.length > 0) {
+        setStories((prev) => {
+          // Filter out stories with duplicate ids
+          const existingIds = new Set(prev.map(s => s.id));
+          const uniqueNewStories = newStories.filter(s => !existingIds.has(s.id));
+          return [...prev, ...uniqueNewStories];
+        });
+        if (newStories.length < STORIES_PER_BATCH) {
+          setAllViewed(true);
+        }
+      } else {
+        setAllViewed(true);
+      }
+    } catch (e) {
+      setAllViewed(true);
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  const handleLoadMore = async () => {
+    setFetching(true);
+    try {
+      const newStories = await groqAPI.fetchStories(STORIES_PER_BATCH);
+      if (newStories && newStories.length > 0) {
+        setStories((prev) => {
+          // Filter out stories with duplicate ids
+          const existingIds = new Set(prev.map(s => s.id));
+          const uniqueNewStories = newStories.filter(s => !existingIds.has(s.id));
+          return [...prev, ...uniqueNewStories];
+        });
+        if (newStories.length < STORIES_PER_BATCH) {
+          setAllViewed(true);
+        }
+      } else {
+        setAllViewed(true);
+      }
+    } catch (e) {
+      setAllViewed(true);
+    } finally {
+      setFetching(false);
+    }
+  };
 
   const handleImageLoad = (downloadUrl) => {
     // Trigger download tracking for Unsplash API compliance
@@ -80,14 +142,18 @@ const FailureStories = () => {
         </div>
 
         <div className="stories-grid">
-          {stories.map((story) => (
-            <article key={story.id} className="story-card">
+          {stories.map((story, idx) => (
+            <article key={story.id ? `story-${story.id}` : `story-${idx}`} className="story-card">
               <div className="story-image">
                 <img 
                   src={story.image} 
                   alt={story.imageData?.alt || story.title} 
                   onLoad={() => story.imageData?.downloadUrl && handleImageLoad(story.imageData.downloadUrl)}
-                  onError={handleImageError}
+                  onError={(e) => {
+                    // Fallback for Unsplash 403 or any error
+                    e.target.onerror = null;
+                    e.target.src = storyFallback;
+                  }}
                 />
                 <div className="story-category">{story.category}</div>
                 <div className="story-location">{story.locationStartup}</div>
@@ -150,9 +216,19 @@ const FailureStories = () => {
         </div>
 
         <div className="stories-footer">
-          <button className="view-all-btn">
-            View All Stories
-          </button>
+          {!viewAllClicked && (
+            <button className="view-all-btn" onClick={handleViewAllStories} disabled={fetching}>
+              {fetching ? 'Loading...' : 'View All Stories'}
+            </button>
+          )}
+          {viewAllClicked && !allViewed && (
+            <button className="view-all-btn" onClick={handleLoadMore} disabled={fetching}>
+              {fetching ? 'Loading...' : 'Load More'}
+            </button>
+          )}
+          {allViewed && (
+            <div className="all-viewed-message">All stories viewed</div>
+          )}
         </div>
       </div>
     </section>
