@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { profileService } from '../../services/profileService';
 import './Hero.css';
 
 const Hero = () => {
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
+  const { currentUser, profileCompleted } = useAuth();
+  const [isCheckingProfile, setIsCheckingProfile] = useState(false);
 
   const handleExploreStories = () => {
     // Scroll to stories section
@@ -16,13 +18,42 @@ const Hero = () => {
     navigate('/sandbox');
   };
 
-  const handleShareStory = () => {
-    if (currentUser) {
-      navigate('/create-story');
-    } else {
+  const handleShareStory = async () => {
+    if (!currentUser) {
       navigate('/signin');
+      return;
+    }
+
+    // Check if profile is completed
+    setIsCheckingProfile(true);
+    try {
+      const completed = await profileService.isProfileCompleted(currentUser.uid);
+      if (completed) {
+        navigate('/create-story');
+      } else {
+        // Show alert and redirect to profile
+        alert('Please complete your profile first before sharing your story!');
+        navigate('/profile');
+      }
+    } catch (error) {
+      console.error('Error checking profile:', error);
+      // If there's an error, redirect to profile to be safe
+      navigate('/profile');
+    } finally {
+      setIsCheckingProfile(false);
     }
   };
+  // Get button text based on profile status
+  const getShareStoryButtonText = () => {
+    if (isCheckingProfile) {
+      return '⏳ Checking...';
+    }
+    if (currentUser && !profileCompleted) {
+      return '📝 Complete Profile First';
+    }
+    return '📝 Share Your Story';
+  };
+
   return (
     <section className="hero">
       <div className="hero-container">
@@ -52,8 +83,12 @@ const Hero = () => {
             <button className="btn-secondary" onClick={handleTryFailometer}>
               Try Sandbox
             </button>
-            <button className="btn-tertiary" onClick={handleShareStory}>
-              📝 Share Your Story
+            <button 
+              className="btn-tertiary" 
+              onClick={handleShareStory}
+              disabled={isCheckingProfile}
+            >
+              {getShareStoryButtonText()}
             </button>
           </div>
         </div>

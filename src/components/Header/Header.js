@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../services/firebase';
 import { useAuth } from '../../context/AuthContext';
+import { profileService } from '../../services/profileService';
 import './Header.css';
 import colors from '../../constants/colors';
 import logo from '../../assets/images/final logo.svg';
@@ -46,6 +47,27 @@ const Header = () => {
   }, []);
 
   // Get user initials for avatar
+  const handleTellYourStory = async (e) => {
+    e.preventDefault();
+    if (!currentUser) {
+      navigate('/signin');
+      return;
+    }
+
+    try {
+      const completed = await profileService.isProfileCompleted(currentUser.uid);
+      if (completed) {
+        navigate('/create-story');
+      } else {
+        alert('Please complete your profile first before sharing your story!');
+        navigate('/profile');
+      }
+    } catch (error) {
+      console.error('Error checking profile:', error);
+      navigate('/profile');
+    }
+  };
+
   const getUserInitials = () => {
     if (currentUser?.displayName) {
       return currentUser.displayName
@@ -83,7 +105,7 @@ const Header = () => {
           <a href="/chatbot" className="nav-link">AI Chatbot</a>
           <a href="#collaboration" className="nav-link">Collaboration</a>
           {currentUser && (
-            <a href="/create-story" className="nav-link create-story-link">
+            <a href="/create-story" className="nav-link create-story-link" onClick={handleTellYourStory}>
               ✍️ Tell Your Story
             </a>
           )}

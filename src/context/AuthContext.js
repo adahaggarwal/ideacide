@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '../services/firebase';
 import { handleRedirectResult } from '../services/auth';
+import { profileService } from '../services/profileService';
 
 const AuthContext = createContext();
 
@@ -12,6 +13,8 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [profileCompleted, setProfileCompleted] = useState(false);
+  const [checkingProfile, setCheckingProfile] = useState(false);
 
   useEffect(() => {
     // Handle Google sign-in redirect result first
@@ -29,8 +32,26 @@ export const AuthProvider = ({ children }) => {
     checkRedirectResult();
 
     // Set up auth state listener
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
+      
+      if (user) {
+        // Check profile completion when user logs in
+        setCheckingProfile(true);
+        try {
+          const completed = await profileService.isProfileCompleted(user.uid);
+          setProfileCompleted(completed);
+        } catch (error) {
+          console.error('Error checking profile completion:', error);
+          setProfileCompleted(false);
+        } finally {
+          setCheckingProfile(false);
+        }
+      } else {
+        setProfileCompleted(false);
+        setCheckingProfile(false);
+      }
+      
       setLoading(false);
     });
 
@@ -48,12 +69,27 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     currentUser,
-    logout
+    profileCompleted,
+    checkingProfile,
+    logout,
+    refreshProfileStatus: async () => {
+      if (currentUser) {
+        setCheckingProfile(true);
+        try {
+          const completed = await profileService.isProfileCompleted(currentUser.uid);
+          setProfileCompleted(completed);
+        } catch (error) {
+          console.error('Error refreshing profile status:', error);
+        } finally {
+          setCheckingProfile(false);
+        }
+      }
+    }
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {!(loading || checkingProfile) && children}
     </AuthContext.Provider>
   );
 };

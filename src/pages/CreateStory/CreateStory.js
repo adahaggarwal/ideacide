@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Header, Footer } from '../../components';
 import { storiesService } from '../../services/storiesService';
+import { profileService } from '../../services/profileService';
 import './CreateStory.css';
 
 const CreateStory = () => {
@@ -20,11 +21,28 @@ const CreateStory = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  // Redirect if not authenticated
+  // Redirect if not authenticated or profile not completed
   React.useEffect(() => {
     if (!currentUser) {
       navigate('/signin');
+      return;
     }
+
+    // Check if profile is completed
+    const checkProfile = async () => {
+      try {
+        const completed = await profileService.isProfileCompleted(currentUser.uid);
+        if (!completed) {
+          alert('Please complete your profile first before sharing your story!');
+          navigate('/profile');
+        }
+      } catch (error) {
+        console.error('Error checking profile:', error);
+        navigate('/profile');
+      }
+    };
+
+    checkProfile();
   }, [currentUser, navigate]);
 
   const handleInputChange = (field, value) => {
