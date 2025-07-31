@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Loading } from '../components';
 
 const AuthRedirectHandler = ({ children }) => {
-  const { currentUser, loading } = useAuth();
+  const { currentUser, loading, profileCompleted, checkingProfile } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     // Check if we just completed a Google sign-in redirect
@@ -24,8 +25,20 @@ const AuthRedirectHandler = ({ children }) => {
     }
   }, [currentUser, navigate]);
 
-  // Show loading while processing auth state
-  if (loading) {
+  // Redirect to profile if user is authenticated but profile is not completed
+  // This is now disabled - only redirect when user clicks CTAs
+  /*
+  useEffect(() => {
+    // Don't redirect if we're already on profile page, login pages, or checking profile
+    const excludedPaths = ['/profile', '/signin', '/signup', '/forgot-password'];
+    if (currentUser && !checkingProfile && !profileCompleted && !excludedPaths.includes(location.pathname)) {
+      navigate('/profile', { replace: true });
+    }
+  }, [currentUser, profileCompleted, checkingProfile, location.pathname, navigate]);
+  */
+
+  // Show loading while processing auth state or checking profile
+  if (loading || checkingProfile) {
     return (
       <div
         style={{

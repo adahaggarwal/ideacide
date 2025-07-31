@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
-import { HomePage, StoryDetail, SignUp, SignIn, ForgotPassword, Sandbox, Chatbot, CreateStory } from './pages';
+import { HomePage, StoryDetail, SignUp, SignIn, ForgotPassword, Sandbox, Chatbot, CreateStory, Profile } from './pages';
 import { StoriesProvider } from './context';
 import { AuthProvider } from './context/AuthContext';
 import AuthRedirectHandler from './components/AuthRedirectHandler';
@@ -22,6 +22,7 @@ function App() {
                 <Route path="/sandbox" element={<Sandbox />} />
                 <Route path="/chatbot" element={<Chatbot />} />
                 <Route path="/create-story" element={<CreateStory />} />
+                <Route path="/profile" element={<Profile />} />
               </Routes>
             </div>
           </AuthRedirectHandler>
