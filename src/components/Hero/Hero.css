@@ -245,6 +245,18 @@
   box-shadow: 0 10px 30px rgba(16, 185, 129, 0.5);
 }
 
+.btn-tertiary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.2);
+}
+
+.btn-tertiary:disabled:hover {
+  transform: none;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.2);
+}
+
 /* Background Effects */
 .hero-bg-effects {
   position: absolute;

@@ -50,7 +50,8 @@ const SignUp = () => {
 
     try {
       await createAccount(formData.email, formData.password, formData.fullName);
-      navigate('/'); // Redirect to home page after successful signup
+      // Let AuthRedirectHandler handle the redirect based on profile completion
+      navigate('/');
     } catch (error) {
       setError(getFirebaseErrorMessage(error));
     } finally {

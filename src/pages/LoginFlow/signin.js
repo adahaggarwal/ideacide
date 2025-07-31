@@ -24,7 +24,8 @@ const SignIn = () => {
 
     try {
       await signIn(email, password);
-      navigate('/'); // Redirect to home page after successful login
+      // Let AuthRedirectHandler handle the redirect based on profile completion
+      navigate('/');
     } catch (error) {
       setError(getFirebaseErrorMessage(error));
     } finally {
