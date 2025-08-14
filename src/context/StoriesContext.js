@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import groqAPI from '../services/groqAPI';
+import geminiAPI from '../services/geminiAPI';
 
 const StoriesContext = createContext();
 
@@ -23,12 +23,12 @@ export const StoriesProvider = ({ children }) => {
       setLoading(true);
       setError(null);
 
-      const fetchedStories = await groqAPI.fetchStories();
+      const fetchedStories = await geminiAPI.fetchStories();
 
       // Add calculated read time to each story
       const storiesWithReadTime = fetchedStories.map((story) => ({
         ...story,
-        readTime: groqAPI.calculateReadTime(story.detailedDescription),
+        readTime: geminiAPI.calculateReadTime(story.detailedDescription),
       }));
 
       setStories(storiesWithReadTime);

@@ -1,22 +1,23 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import './FailureStories.css';
 import useStories from '../../hooks/useStories';
 import { Loading } from '../index';
-import unsplashAPI from '../../services/unsplashAPI';
+import pexelAPI from '../../services/pexelAPI';
 import storyFallback from '../../assets/images/story_fallback.png';
-import groqAPI from '../../services/groqAPI';
+import geminiAPI from '../../services/geminiAPI';
 
 const FailureStories = () => {
   const { stories: initialStories, loading, error, lastUpdated, refreshStories } = useStories();
   const navigate = useNavigate();
 
   const INITIAL_COUNT = 3;
-  const STORIES_PER_BATCH = 10;
+  const STORIES_PER_BATCH = 10; // Generate 10 stories per batch
   const [stories, setStories] = useState([]); // All stories to display
   const [viewAllClicked, setViewAllClicked] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [allViewed, setAllViewed] = useState(false);
+  const [refreshMessage, setRefreshMessage] = useState('');
 
   // On first render, show initial 3 stories
   React.useEffect(() => {
@@ -27,7 +28,8 @@ const FailureStories = () => {
     setViewAllClicked(true);
     setFetching(true);
     try {
-      const newStories = await groqAPI.fetchStories(STORIES_PER_BATCH);
+      // Fetch 10 stories from Gemini API
+      const newStories = await geminiAPI.fetchStories(STORIES_PER_BATCH);
       if (newStories && newStories.length > 0) {
         setStories((prev) => {
           // Filter out stories with duplicate ids
@@ -35,6 +37,7 @@ const FailureStories = () => {
           const uniqueNewStories = newStories.filter(s => !existingIds.has(s.id));
           return [...prev, ...uniqueNewStories];
         });
+        // If we got fewer than 10 stories, mark as all viewed
         if (newStories.length < STORIES_PER_BATCH) {
           setAllViewed(true);
         }
@@ -42,6 +45,7 @@ const FailureStories = () => {
         setAllViewed(true);
       }
     } catch (e) {
+      console.error('Error fetching stories:', e);
       setAllViewed(true);
     } finally {
       setFetching(false);
@@ -51,7 +55,8 @@ const FailureStories = () => {
   const handleLoadMore = async () => {
     setFetching(true);
     try {
-      const newStories = await groqAPI.fetchStories(STORIES_PER_BATCH);
+      // Fetch 10 more stories from Gemini API
+      const newStories = await geminiAPI.fetchStories(STORIES_PER_BATCH);
       if (newStories && newStories.length > 0) {
         setStories((prev) => {
           // Filter out stories with duplicate ids
@@ -59,6 +64,7 @@ const FailureStories = () => {
           const uniqueNewStories = newStories.filter(s => !existingIds.has(s.id));
           return [...prev, ...uniqueNewStories];
         });
+        // If we got fewer than 10 stories, mark as all viewed
         if (newStories.length < STORIES_PER_BATCH) {
           setAllViewed(true);
         }
@@ -66,6 +72,7 @@ const FailureStories = () => {
         setAllViewed(true);
       }
     } catch (e) {
+      console.error('Error fetching more stories:', e);
       setAllViewed(true);
     } finally {
       setFetching(false);
@@ -73,8 +80,8 @@ const FailureStories = () => {
   };
 
   const handleImageLoad = (downloadUrl) => {
-    // Trigger download tracking for Unsplash API compliance
-    unsplashAPI.triggerDownload(downloadUrl);
+    // Pexels API doesn't require download tracking like Unsplash
+    // This function is kept for compatibility but doesn't need to do anything
   };
 
   const handleImageError = (event) => {
@@ -84,6 +91,43 @@ const FailureStories = () => {
 
   const handleReadMore = (storyId) => {
     navigate(`/story/${storyId}`);
+  };
+
+  const handleRefreshStories = async () => {
+    // Reset all state to show initial 3 stories again
+    setViewAllClicked(false);
+    setAllViewed(false);
+    setFetching(true);
+    
+    try {
+      // Try to fetch fresh stories from Gemini API first
+      const freshStories = await geminiAPI.fetchStories(10);
+      if (freshStories && freshStories.length > 0) {
+        // Show first 3 stories from the fresh batch
+        setStories(freshStories.slice(0, INITIAL_COUNT));
+              setRefreshMessage('✅ Fresh stories loaded from Gemini API!');
+      console.log('✅ Refreshed with fresh stories from Gemini API');
+      // Clear message after 3 seconds
+      setTimeout(() => setRefreshMessage(''), 3000);
+    } else {
+      // Fallback to initial stories if API fails
+      setStories(initialStories.slice(0, INITIAL_COUNT));
+      setRefreshMessage('🔄 Stories refreshed with fallback data');
+      console.log('🔄 Refreshed with initial stories (API fallback)');
+      // Clear message after 3 seconds
+      setTimeout(() => setRefreshMessage(''), 3000);
+    }
+    } catch (error) {
+      console.error('Error refreshing stories:', error);
+      // Fallback to initial stories if there's an error
+      setStories(initialStories.slice(0, INITIAL_COUNT));
+      setRefreshMessage('⚠️ Refreshed with fallback stories (API error)');
+      console.log('🔄 Refreshed with initial stories (error fallback)');
+      // Clear message after 3 seconds
+      setTimeout(() => setRefreshMessage(''), 3000);
+    } finally {
+      setFetching(false);
+    }
   };
 
   if (loading) {
@@ -134,11 +178,30 @@ const FailureStories = () => {
           {lastUpdated && (
             <div className="last-updated">
               <span>Last updated: {lastUpdated.toLocaleString()}</span>
-              <button className="refresh-button" onClick={refreshStories}>
-                🔄 Refresh Stories
+              <button className="refresh-button" onClick={handleRefreshStories} disabled={fetching}>
+                {fetching ? (
+                  <>
+                    <span className="spinner"></span>
+                    Refreshing...
+                  </>
+                ) : (
+                  '🔄 Refresh Stories'
+                )}
               </button>
             </div>
           )}
+          
+          {/* Refresh message display */}
+          {refreshMessage && (
+            <div className="refresh-message">
+              {refreshMessage}
+            </div>
+          )}
+          
+          {/* Stories count display */}
+          <div className="stories-count">
+            Showing {stories.length} of {viewAllClicked ? 'many' : INITIAL_COUNT} stories
+          </div>
         </div>
 
         <div className="stories-grid">
@@ -148,9 +211,9 @@ const FailureStories = () => {
                 <img 
                   src={story.image} 
                   alt={story.imageData?.alt || story.title} 
-                  onLoad={() => story.imageData?.downloadUrl && handleImageLoad(story.imageData.downloadUrl)}
+                  onLoad={() => handleImageLoad()}
                   onError={(e) => {
-                    // Fallback for Unsplash 403 or any error
+                    // Fallback for Pexels API errors or any error
                     e.target.onerror = null;
                     e.target.src = storyFallback;
                   }}
