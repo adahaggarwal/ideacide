@@ -9,6 +9,10 @@ export const profileService = {
   // Get user profile
   async getProfile(userId) {
     try {
+      if (!userId) {
+        throw new Error('User ID is required');
+      }
+
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
@@ -16,7 +20,8 @@ export const profileService = {
         .single();
 
       if (error && error.code !== 'PGRST116') { // PGRST116 is "not found" error
-        throw error;
+        console.error('Supabase error:', error);
+        throw new Error(`Database error: ${error.message}`);
       }
 
       return data;
@@ -29,6 +34,24 @@ export const profileService = {
   // Create or update user profile
   async createOrUpdateProfile(userId, profileData) {
     try {
+      if (!userId) {
+        throw new Error('User ID is required');
+      }
+
+      if (!profileData) {
+        throw new Error('Profile data is required');
+      }
+
+      // Validate required fields
+      const requiredFields = ['full_name', 'user_type', 'has_active_startup', 'platform_purpose'];
+      for (const field of requiredFields) {
+        if (!profileData[field] || 
+            (field === 'platform_purpose' && profileData[field].length === 0) ||
+            (field === 'has_active_startup' && profileData[field] === null)) {
+          throw new Error(`Missing required field: ${field}`);
+        }
+      }
+
       const { data, error } = await supabase
         .from('user_profiles')
         .upsert({
@@ -40,7 +63,8 @@ export const profileService = {
         .single();
 
       if (error) {
-        throw error;
+        console.error('Supabase upsert error:', error);
+        throw new Error(`Database error: ${error.message}`);
       }
 
       return data;
