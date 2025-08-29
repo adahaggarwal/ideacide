@@ -42,7 +42,6 @@ const Profile = () => {
       const profile = await profileService.getProfile(currentUser.uid);
       
       if (profile) {
-        // Ensure all required fields exist with defaults
         const sanitizedProfile = {
           full_name: profile.full_name || currentUser.displayName || '',
           user_type: profile.user_type || '',
@@ -57,7 +56,6 @@ const Profile = () => {
         setProfileData(sanitizedProfile);
         setIsEditing(false);
       } else {
-        // No profile exists, create new one with defaults
         setIsEditing(true);
         setProfileData(prev => ({
           ...prev,
@@ -74,7 +72,6 @@ const Profile = () => {
     } catch (error) {
       console.error('Error loading profile:', error);
       
-      // Retry logic for network errors
       if (retryCount < 2 && (error.message.includes('Network') || error.message.includes('fetch'))) {
         console.log(`Retrying profile load... Attempt ${retryCount + 1}`);
         setTimeout(() => loadProfile(retryCount + 1), 1000 * (retryCount + 1));
@@ -84,7 +81,6 @@ const Profile = () => {
       setError('Failed to load profile. Please try again.');
       setIsEditing(true);
       
-      // Set default profile data on error
       setProfileData(prev => ({
         ...prev,
         full_name: currentUser.displayName || '',
@@ -123,7 +119,6 @@ const Profile = () => {
   };
 
   const validateForm = () => {
-    // Clear previous errors
     setError('');
     
     if (!profileData.full_name.trim()) {
@@ -171,7 +166,6 @@ const Profile = () => {
     setSuccessMessage('');
 
     try {
-      // Prepare profile data for submission
       const profileToSubmit = {
         ...profileData,
         email: currentUser.email,
@@ -180,11 +174,8 @@ const Profile = () => {
       };
 
       await profileService.createOrUpdateProfile(currentUser.uid, profileToSubmit);
-
-      // Refresh the profile status in auth context
       await refreshProfileStatus();
       
-      // Update local state with the submitted data
       setProfileData(prev => ({
         ...prev,
         ...profileToSubmit
@@ -193,7 +184,6 @@ const Profile = () => {
       setIsEditing(false);
       setSuccessMessage('Profile saved successfully! You can now access all features.');
       
-      // Clear success message after 3 seconds
       setTimeout(() => {
         setSuccessMessage('');
       }, 3000);
@@ -233,7 +223,6 @@ const Profile = () => {
           <h1>Your Profile</h1>
           <p>Tell us about yourself to get a personalized experience</p>
           
-          {/* Profile completion indicator */}
           {!isEditing && (
             <div className="profile-completion">
               <div className="completion-icon" role="img" aria-label={profileData.profile_completed ? 'Profile complete' : 'Profile incomplete'}>
@@ -256,7 +245,6 @@ const Profile = () => {
         )}
 
         {!isEditing ? (
-          // Display Mode
           <div className="profile-display">
             <div className="profile-info">
               <div className="info-group">
@@ -318,7 +306,6 @@ const Profile = () => {
             </button>
           </div>
         ) : (
-          // Edit Mode
           <form className="profile-form" onSubmit={handleSubmit}>
             {successMessage && (
               <div className="success-message">
@@ -333,7 +320,9 @@ const Profile = () => {
 
             {/* Full Name */}
             <div className="form-group">
-              <label htmlFor="full_name">Full Name *</label>
+              <label htmlFor="full_name">
+                Full Name <span style={{ color: "red" }}>*</span>
+              </label>
               <input
                 id="full_name"
                 type="text"
@@ -351,7 +340,9 @@ const Profile = () => {
 
             {/* User Type */}
             <div className="form-group">
-              <label>What best describes you? *</label>
+              <label>
+                What best describes you? <span style={{ color: "red" }}>*</span>
+              </label>
               <div className="radio-group">
                 {[
                   { value: 'student', label: 'Student' },
@@ -375,7 +366,9 @@ const Profile = () => {
 
             {/* Active Startup */}
             <div className="form-group">
-              <label>Do you have an active startup? *</label>
+              <label>
+                Do you have an active startup? <span style={{ color: "red" }}>*</span>
+              </label>
               <div className="radio-group">
                 <label className="radio-option">
                   <input
@@ -400,11 +393,13 @@ const Profile = () => {
               </div>
             </div>
 
-            {/* Conditional Questions based on startup status */}
+            {/* Conditional Questions */}
             {profileData.has_active_startup === true ? (
               <>
                 <div className="form-group">
-                  <label htmlFor="startup_industry">Which industry is your startup in? *</label>
+                  <label htmlFor="startup_industry">
+                    Which industry is your startup in? <span style={{ color: "red" }}>*</span>
+                  </label>
                   <input
                     id="startup_industry"
                     type="text"
@@ -416,7 +411,9 @@ const Profile = () => {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="startup_details">Tell us more about your startup (Optional)</label>
+                  <label htmlFor="startup_details">
+                    Tell us more about your startup <span style={{ color: "red" }}>*</span>
+                  </label>
                   <textarea
                     id="startup_details"
                     value={profileData.startup_details}
@@ -428,7 +425,9 @@ const Profile = () => {
               </>
             ) : profileData.has_active_startup === false && (
               <div className="form-group">
-                <label htmlFor="failure_reason">Why did your startup fail or why don't you have one? *</label>
+                <label htmlFor="failure_reason">
+                  Why did your startup fail or why don't you have one? <span style={{ color: "red" }}>*</span>
+                </label>
                 <textarea
                   id="failure_reason"
                   value={profileData.failure_reason}
@@ -442,7 +441,9 @@ const Profile = () => {
 
             {/* Platform Purpose */}
             <div className="form-group">
-              <label>What are you looking for on this platform? * (Select all that apply)</label>
+              <label>
+                What are you looking for on this platform? <span style={{ color: "red" }}>*</span> (Select all that apply)
+              </label>
               <div className="checkbox-group">
                 {[
                   { value: 'investment', label: 'Investment opportunities' },
