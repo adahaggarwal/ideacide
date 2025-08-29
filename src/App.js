@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
-import { HomePage, StoryDetail, SignUp, SignIn, ForgotPassword, Sandbox, Chatbot, CreateStory, Profile } from './pages';
+import { HomePage, StoryDetail, Stories, SignUp, SignIn, ForgotPassword, Sandbox, Chatbot, CreateStory, Profile } from './pages';
 import { StoriesProvider } from './context';
 import { AuthProvider } from './context/AuthContext';
 import AuthRedirectHandler from './components/AuthRedirectHandler';
@@ -15,6 +15,7 @@ function App() {
             <div className="App">
               <Routes>
                 <Route path="/" element={<HomePage />} />
+                <Route path="/stories" element={<Stories />} />
                 <Route path="/story/:id" element={<StoryDetail />} />
                 <Route path="/signup" element={<SignUp />} />
                 <Route path="/signin" element={<SignIn />} />

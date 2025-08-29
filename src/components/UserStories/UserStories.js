@@ -4,12 +4,19 @@ import './UserStories.css';
 import useUserStories from '../../hooks/useUserStories';
 import { Loading } from '../index';
 
-const UserStories = () => {
-  const { stories, loading, error, lastUpdated, refreshStories } = useUserStories(6);
+const UserStories = ({ stories: propStories, onStoryClick, hideHeader = false, limit = 6 }) => {
+  const { stories: hookStories, loading, error, lastUpdated, refreshStories } = useUserStories(limit);
   const navigate = useNavigate();
 
+  // Use prop stories if provided, otherwise use hook stories
+  const stories = propStories || hookStories;
+
   const handleReadMore = (storyId) => {
-    navigate(`/story/${storyId}`);
+    if (onStoryClick) {
+      onStoryClick(storyId);
+    } else {
+      navigate(`/story/${storyId}`);
+    }
   };
 
   const handleCreateStory = () => {
@@ -30,23 +37,25 @@ const UserStories = () => {
     }).format(new Date(date));
   };
 
-  if (loading) {
+  if (loading && !propStories) {
     return (
       <section className="user-stories">
         <div className="user-stories-container">
-          <div className="user-stories-header">
-            <h2 className="user-stories-title">Community Stories</h2>
-            <p className="user-stories-subtitle">
-              Real experiences shared by our community
-            </p>
-          </div>
+          {!hideHeader && (
+            <div className="user-stories-header">
+              <h2 className="user-stories-title">Community Stories</h2>
+              <p className="user-stories-subtitle">
+                Real experiences shared by our community
+              </p>
+            </div>
+          )}
           <Loading size="large" text="Loading community stories..." />
         </div>
       </section>
     );
   }
 
-  if (error) {
+  if (error && !propStories) {
     return (
       <section className="user-stories">
         <div className="user-stories-container">
@@ -70,23 +79,25 @@ const UserStories = () => {
   return (
     <section className="user-stories">
       <div className="user-stories-container">
-        <div className="user-stories-header">
-          <h2 className="user-stories-title">Community Stories</h2>
-          <p className="user-stories-subtitle">
-            Real experiences shared by our community
-          </p>
+        {!hideHeader && (
+          <div className="user-stories-header">
+            <h2 className="user-stories-title">Community Stories</h2>
+            <p className="user-stories-subtitle">
+              Real experiences shared by our community
+            </p>
 
-          <div className="user-stories-actions">
-            {lastUpdated && (
-              <span className="last-updated">
-                Updated: {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </span>
-            )}
-            <button className="create-story-button" onClick={handleCreateStory}>
-              📝 Share Your Story
-            </button>
+            <div className="user-stories-actions">
+              {lastUpdated && !propStories && (
+                <span className="last-updated">
+                  Updated: {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              )}
+              <button className="create-story-button" onClick={handleCreateStory}>
+                📝 Share Your Story
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {stories.length === 0 ? (
           <div className="no-stories">

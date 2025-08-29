@@ -50,6 +50,11 @@ const Header = () => {
     navigate('/');
   };
 
+  const handleStoriesClick = (e) => {
+    e.preventDefault();
+    navigate('/stories');
+  };
+
   // Get user initials for avatar
   const handleTellYourStory = async (e) => {
     e.preventDefault();
@@ -104,7 +109,7 @@ const Header = () => {
 
         {/* Navigation Links */}
         <nav className="nav-links">
-          <a href="#stories" className="nav-link">Stories</a>
+          <a href="/stories" className="nav-link" onClick={handleStoriesClick}>Stories</a>
           <a href="/sandbox" className="nav-link">Sandbox</a>
           <a href="/chatbot" className="nav-link">AI Chatbot</a>
           <a href="#collaboration" className="nav-link">Collaboration</a>
