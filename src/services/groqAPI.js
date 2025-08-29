@@ -1,5 +1,5 @@
 // Groq API integration service
-import unsplashAPI from './unsplashAPI';
+import pexelAPI from './pexelAPI';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_API_KEY = process.env.REACT_APP_GROQ_API_KEY;
@@ -193,7 +193,7 @@ class GroqAPIService {
     try {
       if (!this.apiKey) {
         console.warn('❌ Groq API key not found. Using fallback data.');
-        const fallbackWithImages = await unsplashAPI.getImagesForStories(FALLBACK_STORIES);
+        const fallbackWithImages = await pexelAPI.getImagesForStories(FALLBACK_STORIES);
         return fallbackWithImages;
       }
 
@@ -274,9 +274,9 @@ class GroqAPIService {
         throw new Error('Invalid response format from Groq API');
       }
 
-      // Fetch images from Unsplash for each story
-      console.log('🖼️ Fetching images from Unsplash for', stories.length, 'stories...');
-      const storiesWithImages = await unsplashAPI.getImagesForStories(stories);
+      // Fetch images from Pexels for each story
+      console.log('🖼️ Fetching images from Pexels for', stories.length, 'stories...');
+      const storiesWithImages = await pexelAPI.getImagesForStories(stories);
       
       console.log('✅ SUCCESS: Returning', storiesWithImages.length, 'fresh stories from Groq API');
       return storiesWithImages;
@@ -287,7 +287,7 @@ class GroqAPIService {
       
       // Return fallback data if API fails
       console.log('📚 Using fallback stories due to API error');
-      const fallbackWithImages = await unsplashAPI.getImagesForStories(FALLBACK_STORIES);
+      const fallbackWithImages = await pexelAPI.getImagesForStories(FALLBACK_STORIES);
       return fallbackWithImages;
     }
   }

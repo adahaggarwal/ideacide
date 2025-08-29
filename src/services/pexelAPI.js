@@ -1,6 +1,6 @@
-// Unsplash API integration service
-const UNSPLASH_API_URL = 'https://api.unsplash.com';
-const UNSPLASH_ACCESS_KEY = process.env.REACT_APP_UNSPLASH_ACCESS_KEY;
+// Pexels API integration service
+const PEXELS_API_URL = 'https://api.pexels.com/v1';
+const PEXELS_ACCESS_KEY = process.env.REACT_APP_PEXEL_ACCESS_KEY;
 
 // Category to search keyword mapping
 const CATEGORY_KEYWORDS = {
@@ -16,79 +16,80 @@ const CATEGORY_KEYWORDS = {
   'Transportation': 'transportation mobility automotive'
 };
 
-// Fallback images if Unsplash fails
+// Fallback images if Pexels fails
 const FALLBACK_IMAGES = {
-  'Business Strategy': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop',
-  'Product Innovation': 'https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?w=400&h=300&fit=crop',
-  'Healthcare Tech': 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop',
-  'Fintech': 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=300&fit=crop',
-  'E-commerce': 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=300&fit=crop',
-  'SaaS': 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=300&fit=crop',
-  'Hardware': 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop',
-  'AI/ML': 'https://images.unsplash.com/photo-1507146426996-ef05306b995a?w=400&h=300&fit=crop',
-  'Social Media': 'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=400&h=300&fit=crop',
-  'Transportation': 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=300&fit=crop'
+  'Business Strategy': 'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&w=400&h=300&fit=crop',
+  'Product Innovation': 'https://images.pexels.com/photos/256369/pexels-photo-256369.jpeg?auto=compress&w=400&h=300&fit=crop',
+  'Healthcare Tech': 'https://images.pexels.com/photos/40568/medical-appointment-doctor-healthcare-40568.jpeg?auto=compress&w=400&h=300&fit=crop',
+  'Fintech': 'https://images.pexels.com/photos/210607/pexels-photo-210607.jpeg?auto=compress&w=400&h=300&fit=crop',
+  'E-commerce': 'https://images.pexels.com/photos/264636/pexels-photo-264636.jpeg?auto=compress&w=400&h=300&fit=crop',
+  'SaaS': 'https://images.pexels.com/photos/267614/pexels-photo-267614.jpeg?auto=compress&w=400&h=300&fit=crop',
+  'Hardware': 'https://images.pexels.com/photos/373543/pexels-photo-373543.jpeg?auto=compress&w=400&h=300&fit=crop',
+  'AI/ML': 'https://images.pexels.com/photos/1181671/pexels-photo-1181671.jpeg?auto=compress&w=400&h=300&fit=crop',
+  'Social Media': 'https://images.pexels.com/photos/267350/pexels-photo-267350.jpeg?auto=compress&w=400&h=300&fit=crop',
+  'Transportation': 'https://images.pexels.com/photos/210182/pexels-photo-210182.jpeg?auto=compress&w=400&h=300&fit=crop'
 };
 
-class UnsplashService {
+class PexelsService {
   constructor() {
-    this.accessKey = UNSPLASH_ACCESS_KEY;
-    this.apiUrl = UNSPLASH_API_URL;
+    this.accessKey = PEXELS_ACCESS_KEY;
+    this.apiUrl = PEXELS_API_URL;
   }
 
   async getImageForStory(story, retryCount = 0) {
     try {
       if (!this.accessKey) {
-        console.warn('Unsplash API key not found. Using fallback images.');
+        console.warn('Pexels API key not found. Using fallback images.');
         return this.getFallbackImage(story.category);
       }
 
       // Create specific search terms based on the story content
       const keywords = this.generateKeywordsFromStory(story);
-      console.log(`Searching Unsplash for: "${keywords}" (${story.title})`);
+      console.log(`Searching Pexels for: "${keywords}" (${story.title})`);
 
-      const url = `${this.apiUrl}/search/photos`;
+      const url = `${this.apiUrl}/search`;
       const params = new URLSearchParams({
         query: keywords,
         per_page: 1,
         orientation: 'landscape',
-        content_filter: 'high',
-        client_id: this.accessKey
       });
 
-      const response = await fetch(`${url}?${params}`);
+      const response = await fetch(`${url}?${params}`, {
+        headers: {
+          Authorization: this.accessKey,
+        },
+      });
 
       if (!response.ok) {
         if (response.status === 403) {
-          console.warn('Unsplash API access denied (403). Using fallback image.');
+          console.warn('Pexels API access denied (403). Using fallback image.');
           return this.getFallbackImage(story.category);
         } else if (response.status === 401) {
-          console.warn('Unsplash API unauthorized (401). Check API key. Using fallback image.');
+          console.warn('Pexels API unauthorized (401). Check API key. Using fallback image.');
           return this.getFallbackImage(story.category);
         } else if (response.status === 429) {
-          console.warn('Unsplash API rate limit exceeded (429). Using fallback image.');
+          console.warn('Pexels API rate limit exceeded (429). Using fallback image.');
           return this.getFallbackImage(story.category);
         }
         // For other errors, try fallback if this is first attempt
         if (retryCount === 0) {
-          console.warn(`Unsplash API error ${response.status}, trying with category keywords...`);
+          console.warn(`Pexels API error ${response.status}, trying with category keywords...`);
           return this.getImageForCategory(story.category);
         }
-        throw new Error(`Unsplash API error: ${response.status}`);
+        throw new Error(`Pexels API error: ${response.status}`);
       }
 
       const data = await response.json();
 
-      if (data.results && data.results.length > 0) {
-        const photo = data.results[0];
+      if (data.photos && data.photos.length > 0) {
+        const photo = data.photos[0];
         return {
-          url: photo.urls.regular,
-          smallUrl: photo.urls.small,
-          thumbUrl: photo.urls.thumb,
-          alt: photo.alt_description || story.title,
-          photographer: photo.user.name,
-          photographerUrl: photo.user.links.html,
-          downloadUrl: photo.links.download_location
+          url: photo.src.large || photo.src.original,
+          smallUrl: photo.src.medium,
+          thumbUrl: photo.src.small,
+          alt: photo.alt || story.title,
+          photographer: photo.photographer,
+          photographerUrl: photo.photographer_url,
         };
       } else {
         console.warn(`No images found for story: ${story.title}`);
@@ -116,34 +117,35 @@ class UnsplashService {
       }
 
       const keywords = CATEGORY_KEYWORDS[category] || 'business startup';
-      const url = `${this.apiUrl}/search/photos`;
+      const url = `${this.apiUrl}/search`;
       const params = new URLSearchParams({
         query: keywords,
         per_page: 1,
         orientation: 'landscape',
-        content_filter: 'high',
-        client_id: this.accessKey
       });
 
-      const response = await fetch(`${url}?${params}`);
+      const response = await fetch(`${url}?${params}`, {
+        headers: {
+          Authorization: this.accessKey,
+        },
+      });
 
       if (!response.ok) {
-        console.warn(`Unsplash category search failed: ${response.status}`);
+        console.warn(`Pexels category search failed: ${response.status}`);
         return this.getFallbackImage(category);
       }
 
       const data = await response.json();
 
-      if (data.results && data.results.length > 0) {
-        const photo = data.results[0];
+      if (data.photos && data.photos.length > 0) {
+        const photo = data.photos[0];
         return {
-          url: photo.urls.regular,
-          smallUrl: photo.urls.small,
-          thumbUrl: photo.urls.thumb,
-          alt: photo.alt_description || `${category} image`,
-          photographer: photo.user.name,
-          photographerUrl: photo.user.links.html,
-          downloadUrl: photo.links.download_location
+          url: photo.src.large || photo.src.original,
+          smallUrl: photo.src.medium,
+          thumbUrl: photo.src.small,
+          alt: photo.alt || `${category} image`,
+          photographer: photo.photographer,
+          photographerUrl: photo.photographer_url,
         };
       } else {
         return this.getFallbackImage(category);
@@ -249,16 +251,6 @@ class UnsplashService {
   getFallbackImage(category) {
     return FALLBACK_IMAGES[category] || FALLBACK_IMAGES['Business Strategy'];
   }
-
-  // Trigger download tracking (required by Unsplash API)
-  async triggerDownload(downloadUrl) {
-    if (!this.accessKey || !downloadUrl) return;
-    try {
-      await fetch(`${downloadUrl}?client_id=${this.accessKey}`);
-    } catch (error) {
-      console.error('Error triggering download:', error);
-    }
-  }
 }
 
-export default new UnsplashService();
+export default new PexelsService(); 

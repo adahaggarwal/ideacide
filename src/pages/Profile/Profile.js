@@ -34,26 +34,64 @@ const Profile = () => {
     loadProfile();
   }, [currentUser, navigate]);
 
-  const loadProfile = async () => {
+  const loadProfile = async (retryCount = 0) => {
     try {
       setIsLoading(true);
+      setError('');
+      
       const profile = await profileService.getProfile(currentUser.uid);
       
       if (profile) {
-        setProfileData(profile);
+        const sanitizedProfile = {
+          full_name: profile.full_name || currentUser.displayName || '',
+          user_type: profile.user_type || '',
+          has_active_startup: profile.has_active_startup !== undefined ? profile.has_active_startup : null,
+          startup_industry: profile.startup_industry || '',
+          startup_details: profile.startup_details || '',
+          failure_reason: profile.failure_reason || '',
+          platform_purpose: profile.platform_purpose || [],
+          profile_completed: profile.profile_completed || false
+        };
+        
+        setProfileData(sanitizedProfile);
         setIsEditing(false);
       } else {
-        // No profile exists, create new one
         setIsEditing(true);
         setProfileData(prev => ({
           ...prev,
           full_name: currentUser.displayName || '',
+          user_type: '',
+          has_active_startup: null,
+          startup_industry: '',
+          startup_details: '',
+          failure_reason: '',
+          platform_purpose: [],
+          profile_completed: false
         }));
       }
     } catch (error) {
       console.error('Error loading profile:', error);
-      setError('Failed to load profile');
+      
+      if (retryCount < 2 && (error.message.includes('Network') || error.message.includes('fetch'))) {
+        console.log(`Retrying profile load... Attempt ${retryCount + 1}`);
+        setTimeout(() => loadProfile(retryCount + 1), 1000 * (retryCount + 1));
+        return;
+      }
+      
+      setError('Failed to load profile. Please try again.');
       setIsEditing(true);
+      
+      setProfileData(prev => ({
+        ...prev,
+        full_name: currentUser.displayName || '',
+        user_type: '',
+        has_active_startup: null,
+        startup_industry: '',
+        startup_details: '',
+        failure_reason: '',
+        platform_purpose: [],
+        profile_completed: false
+      }));
     } finally {
       setIsLoading(false);
     }
@@ -81,30 +119,38 @@ const Profile = () => {
   };
 
   const validateForm = () => {
+    setError('');
+    
     if (!profileData.full_name.trim()) {
       setError('Full name is required');
       return false;
     }
+    
     if (!profileData.user_type) {
       setError('Please select your role');
       return false;
     }
+    
     if (profileData.has_active_startup === null) {
       setError('Please specify if you have an active startup');
       return false;
     }
-    if (profileData.has_active_startup && !profileData.startup_industry.trim()) {
+    
+    if (profileData.has_active_startup === true && !profileData.startup_industry.trim()) {
       setError('Please specify your startup industry');
       return false;
     }
-    if (!profileData.has_active_startup && !profileData.failure_reason.trim()) {
+    
+    if (profileData.has_active_startup === false && !profileData.failure_reason.trim()) {
       setError('Please explain why your startup failed or why you don\'t have one');
       return false;
     }
-    if (profileData.platform_purpose.length === 0) {
+    
+    if (!profileData.platform_purpose || profileData.platform_purpose.length === 0) {
       setError('Please select at least one platform purpose');
       return false;
     }
+    
     return true;
   };
 
@@ -117,27 +163,33 @@ const Profile = () => {
 
     setIsSubmitting(true);
     setError('');
+    setSuccessMessage('');
 
     try {
-      await profileService.createOrUpdateProfile(currentUser.uid, {
+      const profileToSubmit = {
         ...profileData,
         email: currentUser.email,
-        profile_completed: true
-      });
+        profile_completed: true,
+        updated_at: new Date().toISOString()
+      };
 
-      // Refresh the profile status in auth context
+      await profileService.createOrUpdateProfile(currentUser.uid, profileToSubmit);
       await refreshProfileStatus();
+      
+      setProfileData(prev => ({
+        ...prev,
+        ...profileToSubmit
+      }));
       
       setIsEditing(false);
       setSuccessMessage('Profile saved successfully! You can now access all features.');
       
-      // Clear success message after 3 seconds
       setTimeout(() => {
         setSuccessMessage('');
       }, 3000);
     } catch (error) {
       console.error('Error saving profile:', error);
-      setError('Failed to save profile. Please try again.');
+      setError('Failed to save profile. Please try again. ' + (error.message || ''));
     } finally {
       setIsSubmitting(false);
     }
@@ -152,7 +204,10 @@ const Profile = () => {
       <div className="profile-page">
         <Header />
         <div className="profile-container">
-          <div className="loading">Loading profile...</div>
+          <div className="loading">
+            <div className="loading-spinner"></div>
+            <p>Loading profile...</p>
+          </div>
         </div>
         <Footer />
       </div>
@@ -168,10 +223,9 @@ const Profile = () => {
           <h1>Your Profile</h1>
           <p>Tell us about yourself to get a personalized experience</p>
           
-          {/* Profile completion indicator */}
           {!isEditing && (
             <div className="profile-completion">
-              <div className="completion-icon">
+              <div className="completion-icon" role="img" aria-label={profileData.profile_completed ? 'Profile complete' : 'Profile incomplete'}>
                 {profileData.profile_completed ? '✅' : '⏳'}
               </div>
               <div className={`completion-text ${profileData.profile_completed ? 'completion-complete' : 'completion-incomplete'}`}>
@@ -181,8 +235,16 @@ const Profile = () => {
           )}
         </div>
 
+        {error && !isEditing && (
+          <div className="error-container">
+            <p className="error-message">{error}</p>
+            <button className="retry-button" onClick={() => loadProfile()}>
+              Retry Loading Profile
+            </button>
+          </div>
+        )}
+
         {!isEditing ? (
-          // Display Mode
           <div className="profile-display">
             <div className="profile-info">
               <div className="info-group">
@@ -192,19 +254,19 @@ const Profile = () => {
 
               <div className="info-group">
                 <label>Role</label>
-                <p>{profileData.user_type?.replace('_', ' ')?.toUpperCase()}</p>
+                <p>{profileData.user_type ? profileData.user_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}</p>
               </div>
 
               <div className="info-group">
                 <label>Active Startup</label>
-                <p>{profileData.has_active_startup ? 'Yes' : 'No'}</p>
+                <p>{profileData.has_active_startup === true ? 'Yes' : profileData.has_active_startup === false ? 'No' : 'Not specified'}</p>
               </div>
 
-              {profileData.has_active_startup ? (
+              {profileData.has_active_startup === true ? (
                 <>
                   <div className="info-group">
                     <label>Startup Industry</label>
-                    <p>{profileData.startup_industry}</p>
+                    <p>{profileData.startup_industry || 'Not specified'}</p>
                   </div>
                   {profileData.startup_details && (
                     <div className="info-group">
@@ -213,21 +275,25 @@ const Profile = () => {
                     </div>
                   )}
                 </>
-              ) : (
+              ) : profileData.has_active_startup === false ? (
                 <div className="info-group">
                   <label>Why no active startup?</label>
-                  <p>{profileData.failure_reason}</p>
+                  <p>{profileData.failure_reason || 'Not specified'}</p>
                 </div>
-              )}
+              ) : null}
 
               <div className="info-group">
                 <label>Platform Purpose</label>
                 <div className="purpose-tags">
-                  {profileData.platform_purpose?.map(purpose => (
-                    <span key={purpose} className="purpose-tag">
-                      {purpose}
-                    </span>
-                  ))}
+                  {profileData.platform_purpose && profileData.platform_purpose.length > 0 ? (
+                    profileData.platform_purpose.map(purpose => (
+                      <span key={purpose} className="purpose-tag">
+                        {purpose}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="no-purpose">No purposes selected</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -240,7 +306,6 @@ const Profile = () => {
             </button>
           </div>
         ) : (
-          // Edit Mode
           <form className="profile-form" onSubmit={handleSubmit}>
             {successMessage && (
               <div className="success-message">
@@ -255,7 +320,9 @@ const Profile = () => {
 
             {/* Full Name */}
             <div className="form-group">
-              <label htmlFor="full_name">Full Name *</label>
+              <label htmlFor="full_name">
+                Full Name <span style={{ color: "red" }}>*</span>
+              </label>
               <input
                 id="full_name"
                 type="text"
@@ -263,12 +330,19 @@ const Profile = () => {
                 onChange={(e) => handleInputChange('full_name', e.target.value)}
                 placeholder="Enter your full name"
                 required
+                aria-describedby="full_name_help"
+                aria-invalid={!profileData.full_name.trim()}
               />
+              <div id="full_name_help" className="field-help">
+                Enter your complete name as you'd like it to appear
+              </div>
             </div>
 
             {/* User Type */}
             <div className="form-group">
-              <label>What best describes you? *</label>
+              <label>
+                What best describes you? <span style={{ color: "red" }}>*</span>
+              </label>
               <div className="radio-group">
                 {[
                   { value: 'student', label: 'Student' },
@@ -292,7 +366,9 @@ const Profile = () => {
 
             {/* Active Startup */}
             <div className="form-group">
-              <label>Do you have an active startup? *</label>
+              <label>
+                Do you have an active startup? <span style={{ color: "red" }}>*</span>
+              </label>
               <div className="radio-group">
                 <label className="radio-option">
                   <input
@@ -317,11 +393,13 @@ const Profile = () => {
               </div>
             </div>
 
-            {/* Conditional Questions based on startup status */}
+            {/* Conditional Questions */}
             {profileData.has_active_startup === true ? (
               <>
                 <div className="form-group">
-                  <label htmlFor="startup_industry">Which industry is your startup in? *</label>
+                  <label htmlFor="startup_industry">
+                    Which industry is your startup in? <span style={{ color: "red" }}>*</span>
+                  </label>
                   <input
                     id="startup_industry"
                     type="text"
@@ -333,7 +411,9 @@ const Profile = () => {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="startup_details">Tell us more about your startup (Optional)</label>
+                  <label htmlFor="startup_details">
+                    Tell us more about your startup <span style={{ color: "red" }}>*</span>
+                  </label>
                   <textarea
                     id="startup_details"
                     value={profileData.startup_details}
@@ -345,7 +425,9 @@ const Profile = () => {
               </>
             ) : profileData.has_active_startup === false && (
               <div className="form-group">
-                <label htmlFor="failure_reason">Why did your startup fail or why don't you have one? *</label>
+                <label htmlFor="failure_reason">
+                  Why did your startup fail or why don't you have one? <span style={{ color: "red" }}>*</span>
+                </label>
                 <textarea
                   id="failure_reason"
                   value={profileData.failure_reason}
@@ -359,7 +441,9 @@ const Profile = () => {
 
             {/* Platform Purpose */}
             <div className="form-group">
-              <label>What are you looking for on this platform? * (Select all that apply)</label>
+              <label>
+                What are you looking for on this platform? <span style={{ color: "red" }}>*</span> (Select all that apply)
+              </label>
               <div className="checkbox-group">
                 {[
                   { value: 'investment', label: 'Investment opportunities' },
@@ -397,7 +481,14 @@ const Profile = () => {
                 className="submit-button"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Saving...' : 'Save Profile'}
+                {isSubmitting ? (
+                  <>
+                    <span className="submit-spinner"></span>
+                    Saving...
+                  </>
+                ) : (
+                  'Save Profile'
+                )}
               </button>
             </div>
           </form>
