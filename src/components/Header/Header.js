@@ -46,6 +46,10 @@ const Header = () => {
     };
   }, []);
 
+  const handleLogoClick = () => {
+    navigate('/');
+  };
+
   // Get user initials for avatar
   const handleTellYourStory = async (e) => {
     e.preventDefault();
@@ -87,7 +91,7 @@ const Header = () => {
     <header className="header">
       <div className="header-container">
         {/* Logo Section */}
-        <div className="logo-section">
+        <div className="logo-section" onClick={handleLogoClick}>
           <div className="logo-icon">
             <img 
               src={logo} 
