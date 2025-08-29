@@ -1,8 +1,9 @@
 // Gemini API integration service for failure stories
 import pexelAPI from './pexelAPI';
 
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
-const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
+// Update API endpoint to use correct version and model
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY_STORY;
 
 // Function to generate prompt for Gemini API
 function generateGeminiPrompt() {
@@ -407,10 +408,12 @@ class GeminiAPIService {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
       
-      const response = await fetch(`${this.apiUrl}?key=${this.apiKey}`, {
+      // Update request structure to match API requirements
+      const response = await fetch(this.apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-goog-api-key': this.apiKey
         },
         body: JSON.stringify({
           contents: [
@@ -421,13 +424,7 @@ class GeminiAPIService {
                 }
               ]
             }
-          ],
-          generationConfig: {
-            temperature: 0.1,
-            maxOutputTokens: 12000,
-            topP: 0.9,
-            topK: 40
-          }
+          ]
         }),
         signal: controller.signal
       });
@@ -520,4 +517,4 @@ class GeminiAPIService {
   }
 }
 
-export default new GeminiAPIService(); 
+export default new GeminiAPIService();

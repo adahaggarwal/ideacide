@@ -49,10 +49,10 @@ const Chatbot = () => {
 
   const callGeminiAPI = async (message) => {
     try {
-      const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
+      const apiKey = process.env.REACT_APP_GEMINI_API_KEY_FUMBLE;
       
       if (!apiKey || apiKey === 'your_gemini_api_key_here') {
-        throw new Error('API key not found. Please add REACT_APP_GEMINI_API_KEY to your environment variables.');
+        throw new Error('API key not found. Please add REACT_APP_GEMINI_API_KEY_FUMBLE to your environment variables.');
       }
 
       const systemPrompt = `You are Fumble, an AI startup advisor and idea generator. Your personality is friendly, encouraging, and knowledgeable about startups, business models, and entrepreneurship. You help users in three main ways:
@@ -63,10 +63,11 @@ const Chatbot = () => {
 
 Keep your responses conversational, practical, and actionable. Ask follow-up questions to better understand the user's situation.`;
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-goog-api-key': apiKey
         },
         body: JSON.stringify({
           contents: [

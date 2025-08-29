@@ -11,24 +11,27 @@ const FailureStories = () => {
   const { stories: initialStories, loading, error, lastUpdated, refreshStories } = useStories();
   const navigate = useNavigate();
 
-  const INITIAL_COUNT = 3;
-  const STORIES_PER_BATCH = 10; // Generate 10 stories per batch
+  const INITIAL_COUNT = 5;
+  const STORIES_PER_BATCH = 5; // Generate 5 stories per batch
   const [stories, setStories] = useState([]); // All stories to display
   const [viewAllClicked, setViewAllClicked] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [allViewed, setAllViewed] = useState(false);
   const [refreshMessage, setRefreshMessage] = useState('');
+  const [rateLimited, setRateLimited] = useState(false);
+  const [rateLimitMessage, setRateLimitMessage] = useState('');
 
-  // On first render, show initial 3 stories
+  // On first render, show initial 5 stories
   React.useEffect(() => {
     setStories(initialStories.slice(0, INITIAL_COUNT));
   }, [initialStories]);
 
   const handleViewAllStories = async () => {
+    if (rateLimited) return;
     setViewAllClicked(true);
     setFetching(true);
     try {
-      // Fetch 10 stories from Gemini API
+      // Fetch 5 stories from Gemini API
       const newStories = await geminiAPI.fetchStories(STORIES_PER_BATCH);
       if (newStories && newStories.length > 0) {
         setStories((prev) => {
@@ -37,7 +40,7 @@ const FailureStories = () => {
           const uniqueNewStories = newStories.filter(s => !existingIds.has(s.id));
           return [...prev, ...uniqueNewStories];
         });
-        // If we got fewer than 10 stories, mark as all viewed
+        // If we got fewer than 5 stories, mark as all viewed
         if (newStories.length < STORIES_PER_BATCH) {
           setAllViewed(true);
         }
@@ -45,6 +48,16 @@ const FailureStories = () => {
         setAllViewed(true);
       }
     } catch (e) {
+      if (e && e.message && e.message.includes('429')) {
+        setRateLimited(true);
+        setRateLimitMessage('🚦 Gemini API rate limit reached. Please wait 30 seconds before trying again.');
+        setTimeout(() => {
+          setRateLimited(false);
+          setRateLimitMessage('');
+        }, 30000); // 30 seconds cooldown
+      } else if (e && e.message && e.message.includes('404')) {
+        setRateLimitMessage('❌ Gemini API endpoint not found. Please check the API configuration.');
+      }
       console.error('Error fetching stories:', e);
       setAllViewed(true);
     } finally {
@@ -53,9 +66,10 @@ const FailureStories = () => {
   };
 
   const handleLoadMore = async () => {
+    if (rateLimited) return;
     setFetching(true);
     try {
-      // Fetch 10 more stories from Gemini API
+      // Fetch 5 more stories from Gemini API
       const newStories = await geminiAPI.fetchStories(STORIES_PER_BATCH);
       if (newStories && newStories.length > 0) {
         setStories((prev) => {
@@ -64,7 +78,7 @@ const FailureStories = () => {
           const uniqueNewStories = newStories.filter(s => !existingIds.has(s.id));
           return [...prev, ...uniqueNewStories];
         });
-        // If we got fewer than 10 stories, mark as all viewed
+        // If we got fewer than 5 stories, mark as all viewed
         if (newStories.length < STORIES_PER_BATCH) {
           setAllViewed(true);
         }
@@ -72,6 +86,16 @@ const FailureStories = () => {
         setAllViewed(true);
       }
     } catch (e) {
+      if (e && e.message && e.message.includes('429')) {
+        setRateLimited(true);
+        setRateLimitMessage('🚦 Gemini API rate limit reached. Please wait 30 seconds before trying again.');
+        setTimeout(() => {
+          setRateLimited(false);
+          setRateLimitMessage('');
+        }, 30000); // 30 seconds cooldown
+      } else if (e && e.message && e.message.includes('404')) {
+        setRateLimitMessage('❌ Gemini API endpoint not found. Please check the API configuration.');
+      }
       console.error('Error fetching more stories:', e);
       setAllViewed(true);
     } finally {
@@ -94,34 +118,40 @@ const FailureStories = () => {
   };
 
   const handleRefreshStories = async () => {
-    // Reset all state to show initial 3 stories again
+    // Reset all state to show initial 5 stories again
     setViewAllClicked(false);
     setAllViewed(false);
     setFetching(true);
     
     try {
       // Try to fetch fresh stories from Gemini API first
-      const freshStories = await geminiAPI.fetchStories(10);
+      const freshStories = await geminiAPI.fetchStories(STORIES_PER_BATCH);
       if (freshStories && freshStories.length > 0) {
-        // Show first 3 stories from the fresh batch
+        // Show first 5 stories from the fresh batch
         setStories(freshStories.slice(0, INITIAL_COUNT));
-              setRefreshMessage('✅ Fresh stories loaded from Gemini API!');
-      console.log('✅ Refreshed with fresh stories from Gemini API');
-      // Clear message after 3 seconds
-      setTimeout(() => setRefreshMessage(''), 3000);
-    } else {
-      // Fallback to initial stories if API fails
-      setStories(initialStories.slice(0, INITIAL_COUNT));
-      setRefreshMessage('🔄 Stories refreshed with fallback data');
-      console.log('🔄 Refreshed with initial stories (API fallback)');
-      // Clear message after 3 seconds
-      setTimeout(() => setRefreshMessage(''), 3000);
-    }
+        setRefreshMessage('✅ Fresh stories loaded from Gemini API!');
+        console.log('✅ Refreshed with fresh stories from Gemini API');
+        // Clear message after 3 seconds
+        setTimeout(() => setRefreshMessage(''), 3000);
+      } else {
+        // Fallback to initial stories if API fails
+        setStories(initialStories.slice(0, INITIAL_COUNT));
+        setRefreshMessage('🔄 Stories refreshed with fallback data');
+        console.log('🔄 Refreshed with initial stories (API fallback)');
+        // Clear message after 3 seconds
+        setTimeout(() => setRefreshMessage(''), 3000);
+      }
     } catch (error) {
       console.error('Error refreshing stories:', error);
       // Fallback to initial stories if there's an error
       setStories(initialStories.slice(0, INITIAL_COUNT));
-      setRefreshMessage('⚠️ Refreshed with fallback stories (API error)');
+      
+      if (error && error.message && error.message.includes('404')) {
+        setRefreshMessage('❌ Gemini API endpoint not found. Using fallback stories.');
+      } else {
+        setRefreshMessage('⚠️ Refreshed with fallback stories (API error)');
+      }
+      
       console.log('🔄 Refreshed with initial stories (error fallback)');
       // Clear message after 3 seconds
       setTimeout(() => setRefreshMessage(''), 3000);
@@ -195,6 +225,13 @@ const FailureStories = () => {
           {refreshMessage && (
             <div className="refresh-message">
               {refreshMessage}
+            </div>
+          )}
+          
+          {/* Rate limit message display */}
+          {rateLimitMessage && (
+            <div className="rate-limit-message" style={{ color: '#d32f2f', fontWeight: 'bold', margin: '12px 0', border: '1px solid #d32f2f', background: '#fff3f3', padding: '8px', borderRadius: '4px' }}>
+              <span role="img" aria-label="rate-limit">🚦</span> {rateLimitMessage}
             </div>
           )}
           
@@ -280,12 +317,12 @@ const FailureStories = () => {
 
         <div className="stories-footer">
           {!viewAllClicked && (
-            <button className="view-all-btn" onClick={handleViewAllStories} disabled={fetching}>
+            <button className="view-all-btn" onClick={handleViewAllStories} disabled={fetching || rateLimited}>
               {fetching ? 'Loading...' : 'View All Stories'}
             </button>
           )}
           {viewAllClicked && !allViewed && (
-            <button className="view-all-btn" onClick={handleLoadMore} disabled={fetching}>
+            <button className="view-all-btn" onClick={handleLoadMore} disabled={fetching || rateLimited}>
               {fetching ? 'Loading...' : 'Load More'}
             </button>
           )}
