@@ -1,7 +1,26 @@
 import { createClient } from '@supabase/supabase-js';
+import { auth } from './firebase';
 
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+
+// Create a Supabase client that can work with Firebase Auth
+const createSupabaseClient = async () => {
+  const client = createClient(supabaseUrl, supabaseKey);
+  
+  // If we have a Firebase user, get their token and set it for Supabase
+  if (auth.currentUser) {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      // Note: This doesn't directly work with Supabase RLS, but we'll handle it differently
+      client.auth.session = () => ({ access_token: token });
+    } catch (error) {
+      console.warn('Could not get Firebase token:', error);
+    }
+  }
+  
+  return client;
+};
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
