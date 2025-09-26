@@ -144,11 +144,11 @@ const StoryDetail = () => {
               <div className="story-meta-info">
                 <div className="meta-item">
                   <span className="meta-label">📅 Published:</span>
-                  <span className="meta-value">{formatDate(story.created_at)}</span>
+                  <span className="meta-value">{story.created_at ? formatDate(story.created_at) : formatDate(story.date) || 'Recently'}</span>
                 </div>
                 <div className="meta-item">
                   <span className="meta-label">⏱️ Read Time:</span>
-                  <span className="meta-value">{estimateReadTime(story.description)}</span>
+                  <span className="meta-value">{estimateReadTime(story.detailedDescription || story.description || '')}</span>
                 </div>
                 <div className="meta-item">
                   <span className="meta-label">👁️ Views:</span>
@@ -169,7 +169,7 @@ const StoryDetail = () => {
               <div className="story-detailed-description">
                 <h2 className="content-title">The Story</h2>
                 <div className="story-text">
-                  {story.description.split('\n').map((paragraph, index) => (
+                  {(story.detailedDescription || story.description || '').split('\n').map((paragraph, index) => (
                     <p key={index} className="story-paragraph">
                       {paragraph}
                     </p>
@@ -234,11 +234,11 @@ const StoryDetail = () => {
                   </div>
                   <div className="info-item">
                     <span className="info-label">Created:</span>
-                    <span className="info-value">{formatDate(story.created_at)}</span>
+                    <span className="info-value">{story.created_at ? formatDate(story.created_at) : formatDate(story.date) || 'Recently'}</span>
                   </div>
                   <div className="info-item">
                     <span className="info-label">Last Updated:</span>
-                    <span className="info-value">{formatDate(story.updated_at)}</span>
+                    <span className="info-value">{story.updated_at ? formatDate(story.updated_at) : formatDate(story.date) || 'Recently'}</span>
                   </div>
                   <div className="info-item">
                     <span className="info-label">Views:</span>
