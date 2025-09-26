@@ -129,9 +129,13 @@ const CreateRequestModal = ({ isOpen, onClose, onRequestCreated, currentUser }) 
   };
 
   const handleNext = () => {
+    console.log('Next button clicked, current step:', step);
     if (validateStep(step)) {
+      console.log('Validation passed, moving to step:', step + 1);
       setStep(step + 1);
       setError('');
+    } else {
+      console.log('Validation failed for step:', step);
     }
   };
 
@@ -494,10 +498,11 @@ const CreateRequestModal = ({ isOpen, onClose, onRequestCreated, currentUser }) 
               <ModernButton
                 type="button"
                 variant="ghost"
+                size="large"
                 onClick={handlePrevious}
                 disabled={isSubmitting}
               >
-                ← Previous
+                ← Previous Step
               </ModernButton>
             )}
             
@@ -507,9 +512,10 @@ const CreateRequestModal = ({ isOpen, onClose, onRequestCreated, currentUser }) 
               <ModernButton
                 type="button"
                 variant="primary"
+                size="large"
                 onClick={handleNext}
               >
-                Next →
+                Next Step →
               </ModernButton>
             ) : (
               <ModernButton
