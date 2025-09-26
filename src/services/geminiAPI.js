@@ -19,7 +19,7 @@ function generateGeminiPrompt() {
   const timestamp = Date.now();
   const randomSeed = Math.floor(Math.random() * 10000);
   const currentYear = new Date().getFullYear();
-  
+
   return `You are an expert business analyst with access to comprehensive startup failure databases. Generate exactly 3 REAL, well-documented startup failure stories with maximum diversity and accuracy.
 
 CRITICAL REQUIREMENTS:
@@ -31,7 +31,7 @@ CRITICAL REQUIREMENTS:
 
 DIVERSITY REQUIREMENTS:
 - Industries: Mix of tech, healthcare, fintech, food, retail, transportation, etc.
-- Time periods: Include recent failures (${currentYear-2}-${currentYear}), 2010s, 2000s, dot-com era
+- Time periods: Include recent failures (${currentYear - 2}-${currentYear}), 2010s, 2000s, dot-com era
 - Geographies: Global perspective - US, Europe, Asia, other regions
 - Failure types: Product-market fit, fraud, competition, regulation, execution, timing
 - Company stages: Early-stage, growth-stage, late-stage failures
@@ -46,7 +46,7 @@ RESEARCH FOCUS:
 JSON format:
 [
   {
-    "id": 1,
+    "id": "auto-generated-uuid",
     "title": "Company Name: Brief Description",
     "category": "Business Strategy",
     "excerpt": "Brief factual summary",
@@ -79,7 +79,7 @@ Return ONLY the JSON array - nothing else. Research timestamp: ${Date.now()}`;
 // Enhanced fallback data with 10 stories in case API fails
 const FALLBACK_STORIES = [
   {
-    id: 1,
+    id: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
     title: "Quibi: The $1.75 Billion Streaming Failure",
     category: "Business Strategy",
     excerpt: "Quibi raised massive funding for short-form mobile video content but failed to find product-market fit during the pandemic.",
@@ -105,7 +105,7 @@ const FALLBACK_STORIES = [
     sourceUrl: "https://www.theverge.com/2020/10/21/21526702/quibi-shutting-down-short-form-video-jeffrey-katzenberg-meg-whitman"
   },
   {
-    id: 2,
+    id: "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
     title: "Theranos: The Blood Testing Fraud That Shook Silicon Valley",
     category: "Healthcare Tech",
     excerpt: "Elizabeth Holmes built a $9 billion company on promises of revolutionary blood testing technology that never actually worked.",
@@ -131,7 +131,7 @@ const FALLBACK_STORIES = [
     sourceUrl: "https://www.sec.gov/news/press-release/2018-41"
   },
   {
-    id: 3,
+    id: "6ba7b811-9dad-11d1-80b4-00c04fd430c8",
     title: "Zume Pizza: Robotic Pizza Delivery Gone Wrong",
     category: "Product Innovation",
     excerpt: "Zume Pizza promised robotic pizza making and autonomous delivery but burned through $375 million without achieving sustainable operations.",
@@ -157,7 +157,7 @@ const FALLBACK_STORIES = [
     sourceUrl: "https://techcrunch.com/2020/01/08/zume-pizza-reportedly-shuts-down-pizza-robot-business/"
   },
   {
-    id: 4,
+    id: "6ba7b812-9dad-11d1-80b4-00c04fd430c8",
     title: "Juicero: The $400 Million Smart Juicer Disaster",
     category: "Hardware",
     excerpt: "Juicero built a $400 juicer that required proprietary juice packs, making it one of the most expensive and unnecessary products ever created.",
@@ -183,7 +183,7 @@ const FALLBACK_STORIES = [
     sourceUrl: "https://www.bloomberg.com/news/articles/2017-04-19/silicon-valley-s-400-juicer-may-be-feeling-the-squeeze"
   },
   {
-    id: 5,
+    id: "6ba7b813-9dad-11d1-80b4-00c04fd430c8",
     title: "Beepi: The $150 Million Used Car Marketplace That Crashed",
     category: "E-commerce",
     excerpt: "Beepi promised to revolutionize used car sales but burned through $150 million in funding before shutting down due to unsustainable unit economics.",
@@ -209,7 +209,7 @@ const FALLBACK_STORIES = [
     sourceUrl: "https://techcrunch.com/2017/02/15/beepi-shuts-down/"
   },
   {
-    id: 6,
+    id: "6ba7b814-9dad-11d1-80b4-00c04fd430c8",
     title: "Homejoy: The $40 Million Home Cleaning Service That Couldn't Scale",
     category: "On-Demand Services",
     excerpt: "Homejoy raised $40 million for its home cleaning platform but failed to achieve sustainable unit economics and customer retention.",
@@ -235,7 +235,7 @@ const FALLBACK_STORIES = [
     sourceUrl: "https://techcrunch.com/2015/07/17/homejoy-shuts-down/"
   },
   {
-    id: 7,
+    id: "6ba7b815-9dad-11d1-80b4-00c04fd430c8",
     title: "Secret: The Anonymous Social App That Self-Destructed",
     category: "Social Media",
     excerpt: "Secret raised $35 million for anonymous social sharing but shut down due to cyberbullying and lack of sustainable engagement.",
@@ -261,7 +261,7 @@ const FALLBACK_STORIES = [
     sourceUrl: "https://techcrunch.com/2015/04/29/secret-shuts-down/"
   },
   {
-    id: 8,
+    id: "6ba7b816-9dad-11d1-80b4-00c04fd430c8",
     title: "Sprig: The $57 Million Food Delivery Service That Couldn't Cook",
     category: "Food Tech",
     excerpt: "Sprig raised $57 million for healthy meal delivery but failed due to high operational costs and complex logistics.",
@@ -287,7 +287,7 @@ const FALLBACK_STORIES = [
     sourceUrl: "https://techcrunch.com/2017/05/26/sprig-shuts-down/"
   },
   {
-    id: 9,
+    id: "6ba7b817-9dad-11d1-80b4-00c04fd430c8",
     title: "Wattpad: The $117 Million Story Platform That Lost Its Way",
     category: "Content Platform",
     excerpt: "Wattpad raised $117 million for user-generated stories but struggled with monetization and eventually sold to Naver for $600 million.",
@@ -313,7 +313,7 @@ const FALLBACK_STORIES = [
     sourceUrl: "https://techcrunch.com/2021/01/19/naver-acquires-wattpad-for-600m/"
   },
   {
-    id: 10,
+    id: "6ba7b818-9dad-11d1-80b4-00c04fd430c8",
     title: "Fab.com: The $336 Million Flash Sale Site That Burned Out",
     category: "E-commerce",
     excerpt: "Fab.com raised $336 million for flash sales but failed due to unsustainable growth and poor unit economics.",
@@ -344,8 +344,7 @@ class GeminiAPIService {
   constructor() {
     this.apiKey = GEMINI_API_KEY;
     this.apiUrl = GEMINI_API_URL;
-    this.storyCounter = 1000; // Start with high ID to avoid conflicts
-    
+
     // Log pro configuration status
     if (this.apiKey) {
       console.log('🚀 Gemini Pro API initialized with optimized configuration:');
@@ -358,9 +357,14 @@ class GeminiAPIService {
     }
   }
 
-  // Generate unique IDs for new stories
+  // Generate unique UUIDs for new stories (compatible with Supabase)
   generateUniqueId() {
-    return this.storyCounter++;
+    // Generate a UUID v4 compatible string
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
   }
 
   // Shuffle array to show different stories each time
@@ -378,38 +382,38 @@ class GeminiAPIService {
     console.log('=== GEMINI JSON PARSING DEBUG ===');
     console.log('Input length:', jsonString.length);
     console.log('First 100 chars:', jsonString.substring(0, 100));
-    
+
     // Clean the JSON string
     let cleaned = jsonString.trim();
-    
+
     // Find JSON array boundaries
     const jsonStart = cleaned.indexOf('[');
     const jsonEnd = cleaned.lastIndexOf(']');
-    
+
     if (jsonStart === -1 || jsonEnd === -1 || jsonStart >= jsonEnd) {
       console.warn('No valid JSON array found in Gemini response');
       throw new Error('No valid JSON array found in Gemini response');
     }
-    
+
     // Extract only the JSON portion
     const jsonOnly = cleaned.substring(jsonStart, jsonEnd + 1);
     console.log('Extracted JSON length:', jsonOnly.length);
-    
+
     try {
       const parsed = JSON.parse(jsonOnly);
       console.log('Successfully parsed Gemini JSON with', parsed.length, 'stories');
-      
+
       // Ensure each story has a unique ID
       const storiesWithUniqueIds = parsed.map(story => ({
         ...story,
         id: this.generateUniqueId()
       }));
-      
+
       return storiesWithUniqueIds;
     } catch (parseError) {
       console.error('Gemini JSON parse error:', parseError.message);
       console.log('Failed JSON sample:', jsonOnly.substring(0, 200));
-      
+
       // If parsing fails, use fallback data
       console.log('Using fallback data due to Gemini JSON parse error');
       throw new Error('Gemini JSON parsing failed - using fallback data');
@@ -419,7 +423,7 @@ class GeminiAPIService {
   async fetchStories(count = 3, retryCount = 0) {
     const MAX_RETRIES = 3;
     const RETRY_DELAY = 2000; // 2 second base delay for overloaded model
-    
+
     try {
       if (!this.apiKey) {
         console.warn('❌ Gemini API key not found. Using fallback data.');
@@ -442,7 +446,7 @@ class GeminiAPIService {
       console.log('🔑 API Key present:', !!this.apiKey);
       console.log('🔑 API Key prefix:', this.apiKey ? this.apiKey.substring(0, 10) + '...' : 'none');
       console.log('⚙️ Using Pro config:', PRO_CONFIG);
-      
+
       // Add timeout to prevent hanging requests - increased for Pro model
       const controller = new AbortController();
       const TIMEOUT_MS = 60000; // 60 second timeout for Pro model
@@ -450,7 +454,7 @@ class GeminiAPIService {
         console.log('⏰ Request timeout after', TIMEOUT_MS / 1000, 'seconds');
         controller.abort();
       }, TIMEOUT_MS);
-      
+
       // Update request structure to match API requirements
       const response = await fetch(this.apiUrl, {
         method: 'POST',
@@ -481,7 +485,7 @@ class GeminiAPIService {
               threshold: "BLOCK_MEDIUM_AND_ABOVE"
             },
             {
-              category: "HARM_CATEGORY_HATE_SPEECH", 
+              category: "HARM_CATEGORY_HATE_SPEECH",
               threshold: "BLOCK_MEDIUM_AND_ABOVE"
             },
             {
@@ -496,7 +500,7 @@ class GeminiAPIService {
         }),
         signal: controller.signal
       });
-      
+
       clearTimeout(timeoutId);
 
       if (!response.ok) {
@@ -520,7 +524,7 @@ class GeminiAPIService {
       // Clean the content for JSON parsing
       let cleanContent = content.trim();
       console.log('Raw content sample:', cleanContent.substring(0, 200));
-      
+
       console.log('Cleaned content ready for parsing:', cleanContent.substring(0, 200) + '...');
 
       // Parse the JSON response using simplified parsing
@@ -535,7 +539,7 @@ class GeminiAPIService {
         console.log('🛠️ Falling back to hardcoded stories...');
         throw new Error(`Unable to parse JSON response from Gemini API. Error: ${parseError.message}`);
       }
-      
+
       // Validate the response structure
       if (!Array.isArray(stories)) {
         throw new Error('Invalid response format from Gemini API');
@@ -544,18 +548,18 @@ class GeminiAPIService {
       // Fetch images from Pexels for each story
       console.log('🖼️ Fetching images from Pexels for', stories.length, 'stories...');
       const storiesWithImages = await pexelAPI.getImagesForStories(stories);
-      
+
       console.log('✅ SUCCESS: Returning', storiesWithImages.length, 'fresh stories from Gemini API');
       return storiesWithImages;
 
     } catch (error) {
       console.error(`❌ Error fetching stories from Gemini (attempt ${retryCount + 1}):`, error.message);
       console.log('🛠️ Error details:', error);
-      
+
       // Retry logic for pro account with exponential backoff
       const isRetryableError = (
         error.name === 'AbortError' ||
-        error.message.includes('HTTP error') || 
+        error.message.includes('HTTP error') ||
         error.message.includes('timeout') ||
         error.message.includes('network') ||
         error.message.includes('fetch') ||
@@ -564,20 +568,20 @@ class GeminiAPIService {
         error.message.includes('overloaded') ||
         error.message.includes('UNAVAILABLE')
       );
-      
+
       if (retryCount < MAX_RETRIES && isRetryableError) {
         const delay = RETRY_DELAY * Math.pow(2, retryCount); // Exponential backoff
-        
+
         if (error.message.includes('503') || error.message.includes('overloaded')) {
           console.log(`🔄 Model overloaded, retrying in ${delay}ms... (${retryCount + 1}/${MAX_RETRIES})`);
         } else {
           console.log(`🔄 Retrying in ${delay}ms... (${retryCount + 1}/${MAX_RETRIES})`);
         }
-        
+
         await new Promise(resolve => setTimeout(resolve, delay));
         return this.fetchStories(count, retryCount + 1);
       }
-      
+
       // Return fallback data if all retries fail
       console.log('📚 Using fallback stories due to Gemini API error after all retries');
       // Shuffle fallback stories to show different ones each time (3 stories)

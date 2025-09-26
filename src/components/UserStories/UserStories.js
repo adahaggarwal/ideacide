@@ -15,7 +15,15 @@ const UserStories = ({ stories: propStories, onStoryClick, hideHeader = false, l
     if (onStoryClick) {
       onStoryClick(storyId);
     } else {
-      navigate(`/story/${storyId}`);
+      // Find the story data to pass it along
+      const story = stories.find(s => s.id === storyId);
+      if (story) {
+        // Pass story data through navigation state for Gemini-generated stories
+        navigate(`/story/${storyId}`, { state: { story } });
+      } else {
+        // Fallback to regular navigation for database stories
+        navigate(`/story/${storyId}`);
+      }
     }
   };
 

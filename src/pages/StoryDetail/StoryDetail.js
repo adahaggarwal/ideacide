@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import './StoryDetail.css';
 import { Header, Footer, Loading } from '../../components';
 import { storiesService } from '../../services/storiesService';
@@ -8,6 +8,7 @@ import storyFallback from '../../assets/images/story_fallback.png';
 const StoryDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [story, setStory] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -17,10 +18,21 @@ const StoryDetail = () => {
       try {
         setLoading(true);
         setError(null);
+        
+        // Check if story data was passed through navigation state (for Gemini-generated stories)
+        if (location.state?.story) {
+          console.log('Using passed story data from navigation state');
+          setStory(location.state.story);
+          setLoading(false);
+          return;
+        }
+        
+        // Otherwise, try to fetch from database (for user-created stories)
+        console.log('Fetching story from database with ID:', id);
         const storyData = await storiesService.getStoryById(id);
         setStory(storyData);
         
-        // Increment view count
+        // Increment view count for database stories
         await storiesService.incrementViews(id);
       } catch (error) {
         console.error('Error fetching story:', error);
@@ -33,7 +45,7 @@ const StoryDetail = () => {
     if (id) {
       fetchStory();
     }
-  }, [id]);
+  }, [id, location.state]);
 
   const handleImageError = (event) => {
     event.target.src = storyFallback;
