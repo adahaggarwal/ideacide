@@ -1,34 +1,47 @@
 // Gemini API integration service for failure stories
 import pexelAPI from './pexelAPI';
 
-// Update API endpoint to use correct version and model
+// Optimized API endpoint for Gemini Pro account with stable model
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY_STORY;
+
+// Pro account configuration optimized for reliability
+const PRO_CONFIG = {
+  temperature: 0.7,           // Moderate creativity for diverse stories
+  topK: 20,                   // Conservative token sampling
+  topP: 0.8,                  // Conservative nucleus sampling
+  maxOutputTokens: 2048,      // Reduced token limit to avoid overload
+  candidateCount: 1,          // Single response for efficiency
+};
 
 // Function to generate prompt for Gemini API
 function generateGeminiPrompt() {
   const timestamp = Date.now();
-  const randomSeed = Math.floor(Math.random() * 1000);
+  const randomSeed = Math.floor(Math.random() * 10000);
+  const currentYear = new Date().getFullYear();
   
-  return `You are tasked with researching and generating exactly 10 REAL startup failure stories. You should find diverse, factual information about different startup failures from various industries and time periods.
+  return `You are an expert business analyst with access to comprehensive startup failure databases. Generate exactly 3 REAL, well-documented startup failure stories with maximum diversity and accuracy.
 
-IMPORTANT: This is request #${timestamp} with seed ${randomSeed}. Each request should return DIFFERENT stories than previous requests.
+CRITICAL REQUIREMENTS:
+- Request ID: ${timestamp}-${randomSeed} (ensure unique stories each time)
+- ONLY return valid JSON - no explanations, markdown, or extra text
+- Start with "[" and end with "]" immediately
+- Each story must be factually accurate and well-researched
+- Focus on lesser-known but well-documented failures for uniqueness
 
-IMPORTANT: Your response must be ONLY valid JSON. Do not include:
-- Any explanatory text
-- Markdown formatting
-- Comments or notes
-- Any text before or after the JSON
+DIVERSITY REQUIREMENTS:
+- Industries: Mix of tech, healthcare, fintech, food, retail, transportation, etc.
+- Time periods: Include recent failures (${currentYear-2}-${currentYear}), 2010s, 2000s, dot-com era
+- Geographies: Global perspective - US, Europe, Asia, other regions
+- Failure types: Product-market fit, fraud, competition, regulation, execution, timing
+- Company stages: Early-stage, growth-stage, late-stage failures
+- Funding levels: Bootstrap failures to unicorn crashes
 
-Start immediately with "[" and end with "]".
-
-Find 10 different startup failure stories from various sources. Look for:
-- Different industries (tech, healthcare, food, retail, etc.)
-- Different time periods (dot-com era, recent failures, etc.)
-- Different failure reasons (market fit, fraud, competition, etc.)
-- Well-documented cases with reliable information
-
-Ensure variety and avoid repeating the same companies. Research recent failures as well as historical ones.
+RESEARCH FOCUS:
+- Prioritize recent, lesser-known failures alongside famous cases
+- Include international startups, not just Silicon Valley
+- Verify all financial figures and dates
+- Ensure each story has unique lessons and insights
 
 JSON format:
 [
@@ -332,6 +345,17 @@ class GeminiAPIService {
     this.apiKey = GEMINI_API_KEY;
     this.apiUrl = GEMINI_API_URL;
     this.storyCounter = 1000; // Start with high ID to avoid conflicts
+    
+    // Log pro configuration status
+    if (this.apiKey) {
+      console.log('🚀 Gemini Pro API initialized with optimized configuration:');
+      console.log('   - Model: gemini-2.0-flash (stable pro model)');
+      console.log('   - Stories per request: 3 (reduced for reliability)');
+      console.log('   - Max tokens:', PRO_CONFIG.maxOutputTokens);
+      console.log('   - Temperature:', PRO_CONFIG.temperature);
+      console.log('   - Timeout: 60 seconds');
+      console.log('   - Retry logic: 3 attempts with 2s+ delays');
+    }
   }
 
   // Generate unique IDs for new stories
@@ -392,21 +416,40 @@ class GeminiAPIService {
     }
   }
 
-  async fetchStories(count = 10) {
+  async fetchStories(count = 3, retryCount = 0) {
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 2000; // 2 second base delay for overloaded model
+    
     try {
       if (!this.apiKey) {
         console.warn('❌ Gemini API key not found. Using fallback data.');
-        // Shuffle fallback stories to show different ones each time
-        const shuffledFallback = this.shuffleArray([...FALLBACK_STORIES]);
+        // Shuffle fallback stories to show different ones each time (3 stories)
+        const shuffledFallback = this.shuffleArray([...FALLBACK_STORIES]).slice(0, 3);
         const fallbackWithImages = await pexelAPI.getImagesForStories(shuffledFallback);
         return fallbackWithImages;
       }
 
-      console.log('🚀 Making API call to Gemini for dynamic startup failure research...');
+      // Validate API key format
+      if (!this.apiKey.startsWith('AIza')) {
+        console.warn('❌ Invalid Gemini API key format. Using fallback data.');
+        const shuffledFallback = this.shuffleArray([...FALLBACK_STORIES]).slice(0, 3);
+        const fallbackWithImages = await pexelAPI.getImagesForStories(shuffledFallback);
+        return fallbackWithImages;
+      }
+
+      console.log(`🚀 Making API call to Gemini Pro (attempt ${retryCount + 1}/${MAX_RETRIES + 1}) for dynamic startup failure research...`);
+      console.log('📡 API URL:', this.apiUrl);
+      console.log('🔑 API Key present:', !!this.apiKey);
+      console.log('🔑 API Key prefix:', this.apiKey ? this.apiKey.substring(0, 10) + '...' : 'none');
+      console.log('⚙️ Using Pro config:', PRO_CONFIG);
       
-      // Add timeout to prevent hanging requests
+      // Add timeout to prevent hanging requests - increased for Pro model
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      const TIMEOUT_MS = 60000; // 60 second timeout for Pro model
+      const timeoutId = setTimeout(() => {
+        console.log('⏰ Request timeout after', TIMEOUT_MS / 1000, 'seconds');
+        controller.abort();
+      }, TIMEOUT_MS);
       
       // Update request structure to match API requirements
       const response = await fetch(this.apiUrl, {
@@ -424,6 +467,31 @@ class GeminiAPIService {
                 }
               ]
             }
+          ],
+          generationConfig: {
+            temperature: PRO_CONFIG.temperature,
+            topK: PRO_CONFIG.topK,
+            topP: PRO_CONFIG.topP,
+            maxOutputTokens: PRO_CONFIG.maxOutputTokens,
+            candidateCount: PRO_CONFIG.candidateCount
+          },
+          safetySettings: [
+            {
+              category: "HARM_CATEGORY_HARASSMENT",
+              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+            },
+            {
+              category: "HARM_CATEGORY_HATE_SPEECH", 
+              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+            },
+            {
+              category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+            },
+            {
+              category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+            }
           ]
         }),
         signal: controller.signal
@@ -432,8 +500,10 @@ class GeminiAPIService {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
+        const errorText = await response.text();
         console.error('❌ HTTP error! status:', response.status);
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.error('❌ Error response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
       }
 
       console.log('✅ Gemini API response received successfully');
@@ -479,13 +549,39 @@ class GeminiAPIService {
       return storiesWithImages;
 
     } catch (error) {
-      console.error('❌ Error fetching stories from Gemini:', error.message);
+      console.error(`❌ Error fetching stories from Gemini (attempt ${retryCount + 1}):`, error.message);
       console.log('🛠️ Error details:', error);
       
-      // Return fallback data if API fails
-      console.log('📚 Using fallback stories due to Gemini API error');
-      // Shuffle fallback stories to show different ones each time
-      const shuffledFallback = this.shuffleArray([...FALLBACK_STORIES]);
+      // Retry logic for pro account with exponential backoff
+      const isRetryableError = (
+        error.name === 'AbortError' ||
+        error.message.includes('HTTP error') || 
+        error.message.includes('timeout') ||
+        error.message.includes('network') ||
+        error.message.includes('fetch') ||
+        error.message.includes('signal is aborted') ||
+        error.message.includes('503') ||
+        error.message.includes('overloaded') ||
+        error.message.includes('UNAVAILABLE')
+      );
+      
+      if (retryCount < MAX_RETRIES && isRetryableError) {
+        const delay = RETRY_DELAY * Math.pow(2, retryCount); // Exponential backoff
+        
+        if (error.message.includes('503') || error.message.includes('overloaded')) {
+          console.log(`🔄 Model overloaded, retrying in ${delay}ms... (${retryCount + 1}/${MAX_RETRIES})`);
+        } else {
+          console.log(`🔄 Retrying in ${delay}ms... (${retryCount + 1}/${MAX_RETRIES})`);
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return this.fetchStories(count, retryCount + 1);
+      }
+      
+      // Return fallback data if all retries fail
+      console.log('📚 Using fallback stories due to Gemini API error after all retries');
+      // Shuffle fallback stories to show different ones each time (3 stories)
+      const shuffledFallback = this.shuffleArray([...FALLBACK_STORIES]).slice(0, 3);
       const fallbackWithImages = await pexelAPI.getImagesForStories(shuffledFallback);
       return fallbackWithImages;
     }

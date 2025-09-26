@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import { HomePage, StoryDetail, Stories, SignUp, SignIn, ForgotPassword, Sandbox, Chatbot, CreateStory, Profile, Collaboration } from './pages';

@@ -21,10 +21,11 @@ export const collaborationService = {
   // Get all active collaboration requests with pagination
   async getRequests(filters = {}, page = 1, limit = 10) {
     try {
+      console.log('Fetching requests with filters:', filters, 'page:', page, 'limit:', limit);
+      
       let query = supabase
         .from('collaboration_requests')
-        .select('*')
-        .eq('status', 'active')
+        .select('*', { count: 'exact' })
         .order('created_at', { ascending: false });
 
       // Apply filters
@@ -54,14 +55,19 @@ export const collaborationService = {
 
       const { data, error, count } = await query;
 
-      if (error) throw error;
+      console.log('Query result:', { data, error, count });
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
       return {
         data: data || [],
-        count,
+        count: count || 0,
         page,
         limit,
-        totalPages: Math.ceil(count / limit)
+        totalPages: Math.ceil((count || 0) / limit)
       };
     } catch (error) {
       console.error('Error fetching collaboration requests:', error);

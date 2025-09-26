@@ -52,11 +52,15 @@ const Collaboration = () => {
       setLoading(true);
       setError('');
       
+      console.log('Loading requests with filters:', filters, 'pagination:', pagination);
+      
       const result = await collaborationService.getRequests(
         filters, 
         pagination.page, 
         pagination.limit
       );
+      
+      console.log('Loaded requests result:', result);
       
       setRequests(result.data);
       setPagination(prev => ({
