@@ -36,6 +36,21 @@
   --gradient-bulb: linear-gradient(135deg, #F59E0B 0%, #FCD34D 100%);
   --gradient-card: linear-gradient(135deg, #34353F 0%, #2D2E36 100%);
   --gradient-button: linear-gradient(135deg, #6B46C1 0%, #7C3AED 100%);
+  --gradient-text: linear-gradient(135deg, #FFFFFF 0%, #F3F4F6 50%, #FFFFFF 100%);
+  --gradient-border: linear-gradient(135deg, rgba(107, 70, 193, 0.5), rgba(245, 158, 11, 0.5));
+  
+  /* Animation Easings */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-spring: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 15px 40px rgba(0, 0, 0, 0.2);
+  --shadow-xl: 0 25px 60px rgba(0, 0, 0, 0.3);
+  --shadow-glow: 0 0 30px rgba(107, 70, 193, 0.4);
 }
 
 /* Global Styles */
@@ -93,28 +108,43 @@ body {
 .p-5 { padding: 1.25rem; }
 .p-6 { padding: 1.5rem; }
 
-/* Scrollbar Styling */
+/* Modern Scrollbar Styling */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 12px;
 }
 
 ::-webkit-scrollbar-track {
   background: var(--bg-secondary);
+  border-radius: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-light);
-  border-radius: 4px;
+  background: linear-gradient(135deg, var(--primary-purple), var(--primary-purple-light));
+  border-radius: 6px;
+  border: 2px solid var(--bg-secondary);
+  transition: all 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-purple);
+  background: linear-gradient(135deg, var(--primary-purple-light), var(--accent-orange));
+  transform: scale(1.1);
 }
 
-/* Selection Styling */
+::-webkit-scrollbar-corner {
+  background: var(--bg-secondary);
+}
+
+/* Enhanced Selection Styling */
 ::selection {
-  background: var(--primary-purple);
+  background: linear-gradient(135deg, var(--primary-purple), var(--accent-orange));
   color: var(--text-primary);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+::-moz-selection {
+  background: linear-gradient(135deg, var(--primary-purple), var(--accent-orange));
+  color: var(--text-primary);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 /* Focus Styling */
@@ -166,30 +196,126 @@ img {
 
 /* Animation Classes */
 .fade-in {
-  animation: fadeIn 0.6s ease-in-out;
+  animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .slide-up {
-  animation: slideUp 0.6s ease-out;
+  animation: slideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-in-left {
+  animation: slideInLeft 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-in-right {
+  animation: slideInRight 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scale-in {
+  animation: scaleIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bounce-in {
+  animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.glass-effect {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hover-lift {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.interactive-card {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.interactive-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 15px 40px rgba(107, 70, 193, 0.2);
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
+    filter: blur(10px);
   }
   to {
     opacity: 1;
+    filter: blur(0);
   }
 }
 
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(50px);
+    filter: blur(5px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes bounceIn {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 

@@ -1,0 +1,155 @@
+.modern-button {
+  position: relative;
+  border: none;
+  border-radius: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  outline: none;
+}
+
+.modern-button:focus-visible {
+  outline: 2px solid var(--primary-purple);
+  outline-offset: 2px;
+}
+
+/* Variants */
+.modern-button--primary {
+  background: var(--gradient-button);
+  color: var(--text-primary);
+  box-shadow: 0 8px 25px rgba(107, 70, 193, 0.4);
+}
+
+.modern-button--primary:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 35px rgba(107, 70, 193, 0.5);
+}
+
+.modern-button--secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  border: 2px solid rgba(107, 70, 193, 0.3);
+  backdrop-filter: blur(20px) saturate(180%);
+}
+
+.modern-button--secondary:hover {
+  background: rgba(107, 70, 193, 0.15);
+  border-color: var(--primary-purple);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 30px rgba(107, 70, 193, 0.3);
+}
+
+.modern-button--tertiary {
+  background: linear-gradient(135deg, #10B981, #34D399);
+  color: white;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.modern-button--tertiary:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.5);
+}
+
+.modern-button--ghost {
+  background: transparent;
+  color: var(--text-primary);
+  border: 2px solid transparent;
+}
+
+.modern-button--ghost:hover {
+  background: rgba(107, 70, 193, 0.1);
+  border-color: rgba(107, 70, 193, 0.3);
+}
+
+/* Sizes */
+.modern-button--small {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  border-radius: 12px;
+}
+
+.modern-button--medium {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+}
+
+.modern-button--large {
+  padding: 1rem 2rem;
+  font-size: 1.125rem;
+  border-radius: 20px;
+}
+
+/* States */
+.modern-button--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.modern-button--loading {
+  cursor: wait;
+}
+
+.modern-button__content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.modern-button__spinner {
+  animation: spin 1s linear infinite;
+}
+
+.modern-button__ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(0);
+  animation: ripple 0.6s linear;
+  pointer-events: none;
+}
+
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Shine effect */
+.modern-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.6s;
+  z-index: 1;
+}
+
+.modern-button:hover::before {
+  left: 100%;
+}
+
+/* Active state */
+.modern-button:active {
+  transform: translateY(-1px) scale(0.98);
+  transition: all 0.1s ease;
+}

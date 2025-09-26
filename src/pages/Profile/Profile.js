@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Header, Footer } from '../../components';
+import { 
+  Header, 
+  Footer, 
+  ModernCard, 
+  ModernButton, 
+  ModernInput, 
+  AnimatedSection,
+  ParticleBackground,
+  ProgressBar,
+  Toast
+} from '../../components';
 import { profileService } from '../../services/profileService';
 import './Profile.css';
 
@@ -24,6 +34,7 @@ const Profile = () => {
   const [error, setError] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [toasts, setToasts] = useState([]);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -118,6 +129,28 @@ const Profile = () => {
     });
   };
 
+  const showToast = (type, message) => {
+    const id = Date.now();
+    const newToast = { id, type, message };
+    setToasts(prev => [...prev, newToast]);
+  };
+
+  const removeToast = (id) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+
+  const getProfileCompletionPercentage = () => {
+    const fields = [
+      profileData.full_name,
+      profileData.user_type,
+      profileData.has_active_startup !== null,
+      profileData.has_active_startup ? profileData.startup_industry : profileData.failure_reason,
+      profileData.platform_purpose?.length > 0
+    ];
+    const completedFields = fields.filter(Boolean).length;
+    return Math.round((completedFields / fields.length) * 100);
+  };
+
   const validateForm = () => {
     setError('');
     
@@ -182,11 +215,7 @@ const Profile = () => {
       }));
       
       setIsEditing(false);
-      setSuccessMessage('Profile saved successfully! You can now access all features.');
-      
-      setTimeout(() => {
-        setSuccessMessage('');
-      }, 3000);
+      showToast('success', 'Profile saved successfully! You can now access all features.');
     } catch (error) {
       console.error('Error saving profile:', error);
       setError('Failed to save profile. Please try again. ' + (error.message || ''));
@@ -216,37 +245,61 @@ const Profile = () => {
 
   return (
     <div className="profile-page">
+      <ParticleBackground density={15} speed={0.2} />
       <Header />
       
       <div className="profile-container">
-        <div className="profile-header">
-          <h1>Your Profile</h1>
-          <p>Tell us about yourself to get a personalized experience</p>
-          
-          {!isEditing && (
-            <div className="profile-completion">
-              <div className="completion-icon" role="img" aria-label={profileData.profile_completed ? 'Profile complete' : 'Profile incomplete'}>
-                {profileData.profile_completed ? '✅' : '⏳'}
-              </div>
-              <div className={`completion-text ${profileData.profile_completed ? 'completion-complete' : 'completion-incomplete'}`}>
-                {profileData.profile_completed ? 'Profile Complete' : 'Profile Incomplete'}
-              </div>
+        <AnimatedSection animation="fade-in">
+          <div className="profile-hero">
+            <div className="profile-header">
+              <h1 className="profile-title">My Profile</h1>
+              <p className="profile-subtitle">
+                {isEditing ? 'Complete your profile to access all features' : 'Manage your account information'}
+              </p>
             </div>
-          )}
-        </div>
+            
+            <div className="profile-progress">
+              <ProgressBar 
+                progress={getProfileCompletionPercentage()} 
+                variant="primary" 
+                size="medium" 
+                showLabel 
+                label={`Profile ${getProfileCompletionPercentage()}% Complete`}
+              />
+            </div>
+          </div>
+        </AnimatedSection>
+
+        {!isEditing && (
+          <AnimatedSection animation="slide-up" delay={200}>
+            <ModernCard variant="glass" hover>
+              <div className="profile-completion">
+                <div className="completion-icon" role="img" aria-label={profileData.profile_completed ? 'Profile complete' : 'Profile incomplete'}>
+                  {profileData.profile_completed ? '✅' : '⏳'}
+                </div>
+                <div className={`completion-text ${profileData.profile_completed ? 'completion-complete' : 'completion-incomplete'}`}>
+                  {profileData.profile_completed ? 'Profile Complete' : 'Profile Incomplete'}
+                </div>
+              </div>
+            </ModernCard>
+          </AnimatedSection>
+        )}
 
         {error && !isEditing && (
-          <div className="error-container">
-            <p className="error-message">{error}</p>
-            <button className="retry-button" onClick={() => loadProfile()}>
-              Retry Loading Profile
-            </button>
-          </div>
+          <AnimatedSection animation="slide-up" delay={300}>
+            <ModernCard variant="default" className="error-container">
+              <p className="error-message">{error}</p>
+              <ModernButton variant="secondary" onClick={() => loadProfile()}>
+                Retry Loading Profile
+              </ModernButton>
+            </ModernCard>
+          </AnimatedSection>
         )}
 
         {!isEditing ? (
-          <div className="profile-display">
-            <div className="profile-info">
+          <AnimatedSection animation="slide-up" delay={400}>
+            <ModernCard variant="elevated" hover>
+              <div className="profile-info"/>
               <div className="info-group">
                 <label>Full Name</label>
                 <p>{profileData.full_name}</p>
@@ -296,206 +349,235 @@ const Profile = () => {
                   )}
                 </div>
               </div>
-            </div>
-
-            <button
-              className="edit-profile-btn"
-              onClick={() => setIsEditing(true)}
-            >
-              Edit Profile
-            </button>
-          </div>
-        ) : (
-          <form className="profile-form" onSubmit={handleSubmit}>
-            {successMessage && (
-              <div className="success-message">
-                {successMessage}
-              </div>
-            )}
-            {error && (
-              <div className="error-message">
-                {error}
-              </div>
-            )}
-
-            {/* Full Name */}
-            <div className="form-group">
-              <label htmlFor="full_name">
-                Full Name <span style={{ color: "red" }}>*</span>
-              </label>
-              <input
-                id="full_name"
-                type="text"
-                value={profileData.full_name}
-                onChange={(e) => handleInputChange('full_name', e.target.value)}
-                placeholder="Enter your full name"
-                required
-                aria-describedby="full_name_help"
-                aria-invalid={!profileData.full_name.trim()}
-              />
-              <div id="full_name_help" className="field-help">
-                Enter your complete name as you'd like it to appear
-              </div>
-            </div>
-
-            {/* User Type */}
-            <div className="form-group">
-              <label>
-                What best describes you? <span style={{ color: "red" }}>*</span>
-              </label>
-              <div className="radio-group">
-                {[
-                  { value: 'student', label: 'Student' },
-                  { value: 'investor', label: 'Investor' },
-                  { value: 'entrepreneur', label: 'Entrepreneur' },
-                  { value: 'working_professional', label: 'Working Professional' }
-                ].map(option => (
-                  <label key={option.value} className="radio-option">
-                    <input
-                      type="radio"
-                      name="user_type"
-                      value={option.value}
-                      checked={profileData.user_type === option.value}
-                      onChange={(e) => handleInputChange('user_type', e.target.value)}
-                    />
-                    <span>{option.label}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Active Startup */}
-            <div className="form-group">
-              <label>
-                Do you have an active startup? <span style={{ color: "red" }}>*</span>
-              </label>
-              <div className="radio-group">
-                <label className="radio-option">
-                  <input
-                    type="radio"
-                    name="has_active_startup"
-                    value="true"
-                    checked={profileData.has_active_startup === true}
-                    onChange={(e) => handleInputChange('has_active_startup', true)}
-                  />
-                  <span>Yes</span>
-                </label>
-                <label className="radio-option">
-                  <input
-                    type="radio"
-                    name="has_active_startup"
-                    value="false"
-                    checked={profileData.has_active_startup === false}
-                    onChange={(e) => handleInputChange('has_active_startup', false)}
-                  />
-                  <span>No</span>
-                </label>
-              </div>
-            </div>
-
-            {/* Conditional Questions */}
-            {profileData.has_active_startup === true ? (
-              <>
-                <div className="form-group">
-                  <label htmlFor="startup_industry">
-                    Which industry is your startup in? <span style={{ color: "red" }}>*</span>
-                  </label>
-                  <input
-                    id="startup_industry"
-                    type="text"
-                    value={profileData.startup_industry}
-                    onChange={(e) => handleInputChange('startup_industry', e.target.value)}
-                    placeholder="e.g., FinTech, EdTech, HealthTech, E-commerce"
-                    required={profileData.has_active_startup}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="startup_details">
-                    Tell us more about your startup <span style={{ color: "red" }}>*</span>
-                  </label>
-                  <textarea
-                    id="startup_details"
-                    value={profileData.startup_details}
-                    onChange={(e) => handleInputChange('startup_details', e.target.value)}
-                    placeholder="Brief description of what your startup does, stage, etc."
-                    rows="3"
-                  />
-                </div>
-              </>
-            ) : profileData.has_active_startup === false && (
-              <div className="form-group">
-                <label htmlFor="failure_reason">
-                  Why did your startup fail or why don't you have one? <span style={{ color: "red" }}>*</span>
-                </label>
-                <textarea
-                  id="failure_reason"
-                  value={profileData.failure_reason}
-                  onChange={(e) => handleInputChange('failure_reason', e.target.value)}
-                  placeholder="Share your experience or reasons for not having a startup"
-                  rows="3"
-                  required={!profileData.has_active_startup}
-                />
-              </div>
-            )}
-
-            {/* Platform Purpose */}
-            <div className="form-group">
-              <label>
-                What are you looking for on this platform? <span style={{ color: "red" }}>*</span> (Select all that apply)
-              </label>
-              <div className="checkbox-group">
-                {[
-                  { value: 'investment', label: 'Investment opportunities' },
-                  { value: 'ideas', label: 'New business ideas' },
-                  { value: 'knowledge', label: 'Learning from failures' },
-                  { value: 'networking', label: 'Networking' },
-                  { value: 'mentorship', label: 'Mentorship' }
-                ].map(option => (
-                  <label key={option.value} className="checkbox-option">
-                    <input
-                      type="checkbox"
-                      checked={profileData.platform_purpose?.includes(option.value)}
-                      onChange={() => handlePurposeChange(option.value)}
-                    />
-                    <span>{option.label}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Submit Buttons */}
-            <div className="form-actions">
-              {!isEditing && (
-                <button
-                  type="button"
-                  className="cancel-button"
-                  onClick={() => navigate('/')}
-                  disabled={isSubmitting}
+              
+              <div className="profile-actions">
+                <ModernButton
+                  variant="primary"
+                  onClick={() => setIsEditing(true)}
                 >
-                  Cancel
-                </button>
-              )}
-              <button
-                type="submit"
-                className="submit-button"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <span className="submit-spinner"></span>
-                    Saving...
-                  </>
-                ) : (
-                  'Save Profile'
+                  ✏️ Edit Profile
+                </ModernButton>
+              </div>
+            </ModernCard>
+          </AnimatedSection>
+        ) : (
+          <AnimatedSection animation="fade-in" delay={200}>
+            <ModernCard variant="glass" className="profile-form-card">
+              <form className="profile-form" onSubmit={handleSubmit}>
+                {successMessage && (
+                  <div className="success-message">
+                    {successMessage}
+                  </div>
                 )}
-              </button>
-            </div>
-          </form>
+                {error && (
+                  <div className="error-message">
+                    {error}
+                  </div>
+                )}
+
+                {/* Full Name */}
+                <div className="form-group">
+                  <ModernInput
+                    label="Full Name"
+                    type="text"
+                    value={profileData.full_name}
+                    onChange={(e) => handleInputChange('full_name', e.target.value)}
+                    placeholder="Enter your full name"
+                    required
+                    icon="👤"
+                    error={!profileData.full_name.trim() && error ? 'Full name is required' : ''}
+                  />
+                </div>
+
+                {/* User Type */}
+                <div className="form-group">
+                  <label className="form-label">
+                    What best describes you? <span style={{ color: "red" }}>*</span>
+                  </label>
+                  <div className="radio-group">
+                    {[
+                      { value: 'student', label: '🎓 Student', icon: '🎓' },
+                      { value: 'investor', label: '💰 Investor', icon: '💰' },
+                      { value: 'entrepreneur', label: '🚀 Entrepreneur', icon: '🚀' },
+                      { value: 'working_professional', label: '💼 Working Professional', icon: '💼' }
+                    ].map(option => (
+                      <ModernCard 
+                        key={option.value} 
+                        variant="glass" 
+                        className={`radio-card ${profileData.user_type === option.value ? 'radio-card--selected' : ''}`}
+                        onClick={() => handleInputChange('user_type', option.value)}
+                      >
+                        <input
+                          type="radio"
+                          name="user_type"
+                          value={option.value}
+                          checked={profileData.user_type === option.value}
+                          onChange={(e) => handleInputChange('user_type', e.target.value)}
+                          className="radio-input"
+                        />
+                        <span className="radio-icon">{option.icon}</span>
+                        <span className="radio-label">{option.label.replace(option.icon + ' ', '')}</span>
+                      </ModernCard>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Active Startup */}
+                <div className="form-group">
+                  <label className="form-label">
+                    Do you have an active startup? <span style={{ color: "red" }}>*</span>
+                  </label>
+                  <div className="radio-group">
+                    <ModernCard 
+                      variant="glass" 
+                      className={`radio-card ${profileData.has_active_startup === true ? 'radio-card--selected' : ''}`}
+                      onClick={() => handleInputChange('has_active_startup', true)}
+                    >
+                      <input
+                        type="radio"
+                        name="has_active_startup"
+                        value="true"
+                        checked={profileData.has_active_startup === true}
+                        onChange={() => handleInputChange('has_active_startup', true)}
+                        className="radio-input"
+                      />
+                      <span className="radio-icon">✅</span>
+                      <span className="radio-label">Yes</span>
+                    </ModernCard>
+                    <ModernCard 
+                      variant="glass" 
+                      className={`radio-card ${profileData.has_active_startup === false ? 'radio-card--selected' : ''}`}
+                      onClick={() => handleInputChange('has_active_startup', false)}
+                    >
+                      <input
+                        type="radio"
+                        name="has_active_startup"
+                        value="false"
+                        checked={profileData.has_active_startup === false}
+                        onChange={() => handleInputChange('has_active_startup', false)}
+                        className="radio-input"
+                      />
+                      <span className="radio-icon">❌</span>
+                      <span className="radio-label">No</span>
+                    </ModernCard>
+                  </div>
+                </div>
+
+                {/* Conditional Questions */}
+                {profileData.has_active_startup === true ? (
+                  <>
+                    <div className="form-group">
+                      <ModernInput
+                        label="Which industry is your startup in?"
+                        type="text"
+                        value={profileData.startup_industry}
+                        onChange={(e) => handleInputChange('startup_industry', e.target.value)}
+                        placeholder="e.g., FinTech, EdTech, HealthTech, E-commerce"
+                        required
+                        icon="🏢"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">
+                        Tell us more about your startup
+                      </label>
+                      <textarea
+                        className="modern-textarea"
+                        value={profileData.startup_details}
+                        onChange={(e) => handleInputChange('startup_details', e.target.value)}
+                        placeholder="Brief description of what your startup does, stage, etc."
+                        rows="3"
+                      />
+                    </div>
+                  </>
+                ) : profileData.has_active_startup === false && (
+                  <div className="form-group">
+                    <label className="form-label">
+                      Why did your startup fail or why don't you have one? <span style={{ color: "red" }}>*</span>
+                    </label>
+                    <textarea
+                      className="modern-textarea"
+                      value={profileData.failure_reason}
+                      onChange={(e) => handleInputChange('failure_reason', e.target.value)}
+                      placeholder="Share your experience or reasons for not having a startup"
+                      rows="3"
+                      required
+                    />
+                  </div>
+                )}
+
+                {/* Platform Purpose */}
+                <div className="form-group">
+                  <label className="form-label">
+                    What are you looking for on this platform? <span style={{ color: "red" }}>*</span> (Select all that apply)
+                  </label>
+                  <div className="checkbox-group">
+                    {[
+                      { value: 'investment', label: 'Investment opportunities', icon: '💰' },
+                      { value: 'ideas', label: 'New business ideas', icon: '💡' },
+                      { value: 'knowledge', label: 'Learning from failures', icon: '📚' },
+                      { value: 'networking', label: 'Networking', icon: '🤝' },
+                      { value: 'mentorship', label: 'Mentorship', icon: '👨‍🏫' }
+                    ].map(option => (
+                      <ModernCard 
+                        key={option.value} 
+                        variant="glass" 
+                        className={`checkbox-card ${profileData.platform_purpose?.includes(option.value) ? 'checkbox-card--selected' : ''}`}
+                        onClick={() => handlePurposeChange(option.value)}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={profileData.platform_purpose?.includes(option.value)}
+                          onChange={() => handlePurposeChange(option.value)}
+                          className="checkbox-input"
+                        />
+                        <span className="checkbox-icon">{option.icon}</span>
+                        <span className="checkbox-label">{option.label}</span>
+                      </ModernCard>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Submit Buttons */}
+                <div className="form-actions">
+                  <ModernButton
+                    type="button"
+                    variant="ghost"
+                    onClick={() => navigate('/')}
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </ModernButton>
+                  <ModernButton
+                    type="submit"
+                    variant="primary"
+                    disabled={isSubmitting}
+                    loading={isSubmitting}
+                  >
+                    {isSubmitting ? 'Saving...' : '💾 Save Profile'}
+                  </ModernButton>
+                </div>
+              </form>
+            </ModernCard>
+          </AnimatedSection>
         )}
       </div>
 
       <Footer />
+      
+      {/* Toast Container */}
+      <div className="toast-container">
+        {toasts.map((toast) => (
+          <Toast
+            key={toast.id}
+            message={toast.message}
+            type={toast.type}
+            onClose={() => removeToast(toast.id)}
+            position="top-right"
+          />
+        ))}
+      </div>
     </div>
   );
 };

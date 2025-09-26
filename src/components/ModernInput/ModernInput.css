@@ -1,0 +1,171 @@
+.modern-input {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.modern-input__field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.modern-input__control {
+  width: 100%;
+  padding: 1rem 1rem 1rem 0;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid var(--border-light);
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modern-input--with-icon .modern-input__control {
+  padding-left: 3rem;
+}
+
+.modern-input__control:focus {
+  border-bottom-color: var(--primary-purple);
+}
+
+.modern-input__control::placeholder {
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.modern-input__control:focus::placeholder {
+  opacity: 1;
+}
+
+.modern-input__label {
+  position: absolute;
+  left: 0;
+  top: 1rem;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: left top;
+}
+
+.modern-input--with-icon .modern-input__label {
+  left: 3rem;
+}
+
+.modern-input__label--active {
+  transform: translateY(-1.5rem) scale(0.85);
+  color: var(--primary-purple);
+  font-weight: 500;
+}
+
+.modern-input__required {
+  color: #ef4444;
+  margin-left: 0.25rem;
+}
+
+.modern-input__border {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--gradient-button);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modern-input__control:focus + .modern-input__label + .modern-input__border,
+.modern-input--active .modern-input__border {
+  width: 100%;
+}
+
+.modern-input__icon {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  font-size: 1.25rem;
+  z-index: 2;
+  transition: color 0.3s ease;
+}
+
+.modern-input--active .modern-input__icon,
+.modern-input__control:focus ~ .modern-input__icon {
+  color: var(--primary-purple);
+}
+
+.modern-input__error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  color: #ef4444;
+  font-size: 0.875rem;
+  animation: shake 0.3s ease-in-out;
+}
+
+.modern-input__error-icon {
+  font-size: 1rem;
+}
+
+.modern-input--error .modern-input__control {
+  border-bottom-color: #ef4444;
+}
+
+.modern-input--error .modern-input__border {
+  background: #ef4444;
+}
+
+.modern-input--error .modern-input__label--active {
+  color: #ef4444;
+}
+
+.modern-input--disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.modern-input--disabled .modern-input__control {
+  cursor: not-allowed;
+}
+
+/* Glass effect variant */
+.modern-input--glass .modern-input__control {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modern-input--glass .modern-input__control:focus {
+  border-color: var(--primary-purple);
+  box-shadow: 0 0 0 2px rgba(107, 70, 193, 0.2);
+}
+
+.modern-input--glass .modern-input__label {
+  top: 1rem;
+  left: 1rem;
+}
+
+.modern-input--glass .modern-input__label--active {
+  transform: translateY(-2.5rem) scale(0.85);
+  left: 0;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modern-input__control {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { profileService } from '../../services/profileService';
+import ModernButton from '../ModernButton';
 import './Hero.css';
 
 const Hero = () => {
@@ -77,19 +78,29 @@ const Hero = () => {
 
           {/* Action Buttons */}
           <div className="hero-buttons">
-            <button className="btn-primary" onClick={handleExploreStories}>
-              Explore Stories
-            </button>
-            <button className="btn-secondary" onClick={handleTryFailometer}>
-              Try Sandbox
-            </button>
-            <button 
-              className="btn-tertiary" 
+            <ModernButton 
+              variant="primary" 
+              size="large"
+              onClick={handleExploreStories}
+            >
+              ✨ Explore Stories
+            </ModernButton>
+            <ModernButton 
+              variant="secondary" 
+              size="large"
+              onClick={handleTryFailometer}
+            >
+              🚀 Try Sandbox
+            </ModernButton>
+            <ModernButton 
+              variant="tertiary" 
+              size="large"
               onClick={handleShareStory}
               disabled={isCheckingProfile}
+              loading={isCheckingProfile}
             >
               {getShareStoryButtonText()}
-            </button>
+            </ModernButton>
           </div>
         </div>
 

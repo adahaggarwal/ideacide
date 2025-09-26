@@ -1,14 +1,25 @@
 .header {
-  background-color: var(--bg-primary);
-  border-bottom: 1px solid var(--border-color);
+  background: rgba(26, 27, 35, 0.8);
+  border-bottom: 1px solid rgba(107, 70, 193, 0.2);
   padding: 0;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 1000;
-  backdrop-filter: blur(10px);
-  background: rgba(26, 27, 35, 0.95);
+  backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(107, 70, 193, 0.5), transparent);
 }
 
 .header-container {
@@ -56,13 +67,14 @@
 }
 
 .logo-section:hover .logo-text {
-  color: var(--primary);
+  color: var(--primary-purple);
   transform: translateX(2px);
 }
 
 .logo-section:hover .logo-image {
-  transform: scale(1.05);
-  transition: all 0.3s ease;
+  transform: scale(1.05) rotate(5deg);
+  filter: drop-shadow(0 0 20px rgba(107, 70, 193, 0.6));
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Navigation Links */
@@ -90,15 +102,35 @@
   content: '';
   position: absolute;
   bottom: -2px;
-  left: 0;
+  left: 50%;
   width: 0;
   height: 2px;
   background: var(--gradient-button);
-  transition: width 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateX(-50%);
+  border-radius: 2px;
 }
 
 .nav-link:hover::after {
   width: 100%;
+}
+
+.nav-link::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(107, 70, 193, 0.1);
+  border-radius: 8px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.nav-link:hover::before {
+  opacity: 1;
 }
 
 .create-story-link {
@@ -126,21 +158,39 @@
   color: var(--text-primary);
   border: none;
   padding: 0.75rem 1.5rem;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
   font-size: 0.95rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 12px rgba(107, 70, 193, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.signup-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.6s;
+}
+
+.signup-button:hover::before {
+  left: 100%;
 }
 
 .signup-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(107, 70, 193, 0.4);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(107, 70, 193, 0.5);
 }
 
 .signup-button:active {
-  transform: translateY(0);
+  transform: translateY(-1px) scale(0.98);
+  transition: all 0.1s ease;
 }
 
 /* Profile Section */
@@ -183,24 +233,27 @@
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  box-shadow: 0 8px 24px var(--shadow);
+  background: rgba(52, 53, 63, 0.95);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(107, 70, 193, 0.3);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05);
   width: 280px;
   z-index: 1001;
   overflow: hidden;
-  animation: dropdownFadeIn 0.2s ease;
+  animation: dropdownFadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes dropdownFadeIn {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-20px) scale(0.95);
+    filter: blur(10px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
+    filter: blur(0);
   }
 }
 
