@@ -8,3 +8,4 @@ export { default as Sandbox } from './Sandbox';
 export { default as Chatbot } from './Chatbot';
 export { default as CreateStory } from './CreateStory';
 export { default as Profile } from './Profile';
+export { default as Collaboration } from './Collaboration';
